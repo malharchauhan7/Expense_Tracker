@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 import { useForm } from "react-hook-form";
 import toast, { Toaster } from "react-hot-toast";
+import AddCategory from "./AddCategory";
 const AddExpense = ({ isOpen, onClose }) => {
   const [categories, setcategories] = useState([]);
   const { register, handleSubmit, watch, setValue, reset } = useForm({
@@ -34,7 +35,7 @@ const AddExpense = ({ isOpen, onClose }) => {
   const onSubmit = async (data) => {
     try {
       const user_id = localStorage.getItem("user_id");
-      const payload = {
+      const TransactionData = {
         amount: parseFloat(data.amount),
         category_id: data.category_id,
         description: data.description,
@@ -44,16 +45,16 @@ const AddExpense = ({ isOpen, onClose }) => {
         status: true,
       };
 
-      const resp = await axios.post("/api/transactions", payload);
+      const resp = await axios.post("/api/transactions", TransactionData);
       if (resp.status === 200) {
         toast.success("Transaction Added Successfully");
       }
-      console.log(payload);
+      console.log(TransactionData);
       reset();
       onClose();
     } catch (error) {
       console.error(error);
-      toast.error("Failed to Add transaction");
+      toast.error("Transaction Failed! or Add Category first");
     }
   };
   const overlayVariants = {
@@ -197,11 +198,17 @@ const AddExpense = ({ isOpen, onClose }) => {
                   required
                 >
                   <option value="">Select category</option>
-                  {categories.map((category) => (
-                    <option key={category._id} value={category._id}>
-                      {category.name}
-                    </option>
-                  ))}
+                  {categories.length > 0 ? (
+                    <>
+                      {categories.map((category) => (
+                        <option key={category._id} value={category._id}>
+                          {category.name}
+                        </option>
+                      ))}
+                    </>
+                  ) : (
+                    <option>Add Category first</option>
+                  )}
                 </select>
               </motion.div>
 

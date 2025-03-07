@@ -26,12 +26,14 @@ const Login = () => {
           }, 2000);
           localStorage.setItem("user_id", resp.data._id);
           localStorage.setItem("name", resp.data.name);
+          localStorage.setItem("isAdmin", resp.data.isAdmin);
         } else {
           setTimeout(() => {
             navigate("/user");
           }, 2000);
           localStorage.setItem("user_id", resp.data._id);
           localStorage.setItem("name", resp.data.name);
+          localStorage.setItem("isAdmin", resp.data.isAdmin);
         }
       }
     } catch (error) {

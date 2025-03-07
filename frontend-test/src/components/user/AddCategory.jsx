@@ -1,16 +1,33 @@
-import { FaTimes } from "react-icons/fa";
+import { FaTimes, FaTrash } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 import { useForm } from "react-hook-form";
 import toast, { Toaster } from "react-hot-toast";
+import { useEffect, useState } from "react";
 
-const AddCategory = ({ isOpen, onClose }) => {
+const AddCategory = ({ isOpen, onClose, categories }) => {
   const { register, handleSubmit, reset } = useForm({
     defaultValues: {
       name: "",
       status: true,
     },
   });
+  // console.log(categories);
+
+  const HandleDeleteCategories = async (id) => {
+    try {
+      const resp = await axios.delete(`/api/category/${id}`);
+      // console.log(resp.data);
+      if (resp.status == 200) {
+        toast.success(resp.data.message);
+      } else {
+        toast.error("Can not delete category");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Can not delete category");
+    }
+  };
 
   const onSubmit = async (data) => {
     try {
@@ -106,7 +123,21 @@ const AddCategory = ({ isOpen, onClose }) => {
                 <FaTimes className="text-gray-500" />
               </motion.button>
             </div>
-
+            <h1 className="block text-sm font-medium text-gray-700 mb-2">
+              Your Categories
+            </h1>
+            <div className="flex  flex-col gap-1  text-lg mb-2 ">
+              {categories.map((cat) => (
+                <div className="flex gap-2 items-center justify-between hover:bg-gray-100/70 py-1 rounded-md px-3">
+                  <h1 className="select-none">{cat.name}</h1>
+                  <FaTrash
+                    className=" text-gray-400 hover:text-red-500 transition-colors cursor-pointer"
+                    size={14}
+                    onClick={() => HandleDeleteCategories(cat._id)}
+                  />
+                </div>
+              ))}
+            </div>
             {/* Form */}
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               {/* Category Name */}

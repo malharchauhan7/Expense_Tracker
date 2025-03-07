@@ -19,6 +19,8 @@ const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const location = useLocation();
+  const isAdmin = localStorage.getItem("isAdmin") === "true";
+  const currentPath = location.pathname;
   const navigate = useNavigate();
   useEffect(() => {
     const handleResize = () => {
@@ -30,7 +32,21 @@ const Sidebar = () => {
 
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+  useEffect(() => {
+    const isAuthenticated = localStorage.getItem("user_id");
+    const isAdmin = localStorage.getItem("isAdmin") === "true";
+    const currentPath = location.pathname;
 
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+
+    if (currentPath.includes("/admin") && !isAdmin) {
+      navigate("/user/dashboard");
+      toast.error("Unauthorized access");
+    }
+  }, [location.pathname, navigate]);
   // Framer Motion
   const sidebarVariants = {
     open: {
@@ -116,11 +132,33 @@ const Sidebar = () => {
     { icon: <GrTransaction />, text: "Transactions", path: "transactions" },
     { icon: <FaCog />, text: "Settings", path: "settings" },
   ];
+  const adminMenuItems = [
+    {
+      icon: <FaTachometerAlt />,
+      text: "Admin Dashboard",
+      path: "dashboard",
+    },
+    { icon: <FaUsers />, text: "Manage Users", path: "users" },
+    { icon: <FaCog />, text: "Admin Settings", path: "settings" },
+  ];
 
+  const userMenuItems = [
+    { icon: <FaUser />, text: "Profile", path: "profile" },
+    { icon: <FaTachometerAlt />, text: "Dashboard", path: "dashboard" },
+    { icon: <GrTransaction />, text: "Transactions", path: "transactions" },
+    { icon: <FaCog />, text: "Settings", path: "settings" },
+  ];
+
+  const getMenuItems = () => {
+    if (currentPath.includes("/admin")) {
+      return adminMenuItems;
+    }
+    return userMenuItems;
+  };
   const HandleLogout = () => {
     localStorage.removeItem("user_id");
     localStorage.removeItem("name");
-
+    localStorage.removeItem("isAdmin");
     setTimeout(() => {
       toast.success("LogOut Successfully");
       navigate("/login");
@@ -167,7 +205,7 @@ const Sidebar = () => {
 
         <nav className={`${isMobile ? "flex-1" : "mt-4 flex-1"}`}>
           <ul className={`${isMobile ? "flex justify-around" : "space-y-1"}`}>
-            {menuItems.map((item, index) => (
+            {getMenuItems().map((item, index) => (
               <motion.li
                 key={index}
                 initial={false}
@@ -255,8 +293,9 @@ const Sidebar = () => {
             whileTap={{ scale: 0.98 }}
             className="flex items-center p-3 rounded-lg w-full cursor-pointer"
             aria-label="Logout"
-            // onClick={() => isMobile && setIsOpen(false)}
-            onClick={() => HandleLogout()}
+            onClick={() => {
+              isMobile && setIsOpen(false), HandleLogout();
+            }}
           >
             <div className="min-w-[24px] flex items-center justify-center">
               <FaSignOutAlt />

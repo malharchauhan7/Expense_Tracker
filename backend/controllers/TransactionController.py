@@ -175,8 +175,8 @@ async def DeleteTransactionById(transaction_id:str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"error: {str(e)}")
     
-# Get Transactions by User Id
-async def GetAllTransactionsByUserId(user_id: ObjectId):
+# ------------- Get ALL Transactions By User_id --------------
+async def GetAllTransactionsByUserId(user_id: str):
     try:
         if not ObjectId.is_valid(user_id):
             raise HTTPException(status_code=400, detail="Invalid User ID format")
@@ -217,3 +217,47 @@ async def GetAllTransactionsByUserId(user_id: ObjectId):
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"error: {str(e)}")
+    
+
+# ------------- Get Analytics of Transactions By User_id ---------------
+async def GetAnalyticsByUserId(user_id:ObjectId):
+    try:
+        if not ObjectId.is_valid(user_id):
+            raise HTTPException(status_code=400, detail="Invalid User ID format")
+            
+     
+        user = await users_collection.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not Found")
+        
+        
+        transactions = await transaction_collection.find({"user_id": ObjectId(user_id)}).to_list(length=None)
+        
+        
+        income = 0
+        expense = 0
+        
+        
+        for transaction in transactions:
+            if transaction["transaction_type"] == "Expense":
+                expense += transaction["amount"]
+            elif transaction["transaction_type"] == "Income":
+                income += transaction["amount"]
+            
+        
+        balance = income - expense
+        savings = income - expense 
+        
+        analytics = {
+            "total_income":income,
+            "total_expense": expense,
+            "total_balance":balance,
+            "total_savings":savings
+        }
+        
+        
+        
+        return JSONResponse(status_code=200,content=analytics)
+        
+    except Exception as e:
+        raise HTTPException(status_code=500,detail=f"error: {str(e)}")

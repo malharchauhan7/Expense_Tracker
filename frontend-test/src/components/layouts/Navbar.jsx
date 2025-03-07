@@ -91,10 +91,12 @@ const Navbar = () => {
           >
             <FaSearch className="text-gray-600 text-xl" />
           </motion.button>
-          <div className="p-2 flex items-center justify-center gap-4 select-none">
-            {username && <p className="font-semibold ">{username}</p>}
-            <FaRegUserCircle className="text-gray-800 text-xl" />
-          </div>
+          <Link to={"profile"}>
+            <div className="p-2 flex items-center justify-center gap-4 select-none">
+              {username && <p className="font-semibold ">{username}</p>}
+              <FaRegUserCircle className="text-gray-800 text-xl" />
+            </div>
+          </Link>
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.95 }}

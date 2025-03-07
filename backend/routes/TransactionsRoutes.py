@@ -1,6 +1,6 @@
 from fastapi import APIRouter,HTTPException
 from models.TransactionsModel import Transaction
-from controllers.TransactionController import GetALlTransactions,GetTransactionById,CreateTransaction,UpdateTransactionById,DeleteTransactionById,GetAllTransactionsByUserId
+from controllers.TransactionController import GetALlTransactions,GetTransactionById,CreateTransaction,UpdateTransactionById,DeleteTransactionById,GetAllTransactionsByUserId,GetAnalyticsByUserId
 from bson import ObjectId
 router = APIRouter()
 
@@ -33,3 +33,4 @@ async def delete_transaction_by_id(transaction_id:str):
 @router.get('/transactions/user/{user_id}')
 async def get_all_transactions_by_user_id(user_id:str):
     return await GetAllTransactionsByUserId(user_id)
+
