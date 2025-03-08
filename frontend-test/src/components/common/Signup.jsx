@@ -22,7 +22,7 @@ const Signup = () => {
         });
         setTimeout(() => {
           navigate("/login");
-        }, 2000);
+        }, 1500);
       }
     } catch (error) {
       toast.error("Error in Signin", {

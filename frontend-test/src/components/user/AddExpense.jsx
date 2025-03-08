@@ -173,7 +173,7 @@ const AddExpense = ({ isOpen, onClose }) => {
                   Amount
                 </label>
                 <input
-                  type="number"
+                  type="text"
                   name="amount"
                   {...register("amount", { required: true })}
                   className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"

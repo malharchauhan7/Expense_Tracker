@@ -133,6 +133,8 @@ const Sidebar = () => {
     { icon: <FaCog />, text: "Settings", path: "settings" },
   ];
   const adminMenuItems = [
+    { icon: <FaUser />, text: "Profile", path: "profile" },
+
     {
       icon: <FaTachometerAlt />,
       text: "Admin Dashboard",

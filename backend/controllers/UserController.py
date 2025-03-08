@@ -1,11 +1,11 @@
 from bson import ObjectId
-from config.db import users_collection
+from config.db import users_collection,category_collection
 from models.UserModel import User
 from datetime import datetime,UTC
 from fastapi import HTTPException
-
-
-
+from fastapi.responses import JSONResponse
+from controllers.CategoryController import CreateCategory
+from models.CategoryModel import Category
 def User_Out(user):
     return {
         "_id": str(user["_id"]),
@@ -13,8 +13,8 @@ def User_Out(user):
         "email": user["email"],
         "isAdmin": user["isAdmin"],
         "status": user["status"],
-        "updated_at": user["updated_at"],
-        "created_at": user["created_at"],
+        "updated_at": user["updated_at"].isoformat() if user["updated_at"] else None,
+        "created_at": user["created_at"].isoformat() if user["created_at"] else None,
     }
 
 # Get all users
@@ -51,6 +51,9 @@ async def CreateUser(user: User):
         if existing_user:
             raise HTTPException(status_code=400, detail="Email already registered")
 
+        
+        
+        
         current_time = datetime.now(UTC)
         new_user = user.model_dump(exclude={"id"})
         new_user.update({
@@ -59,6 +62,21 @@ async def CreateUser(user: User):
         })
         
         inserted_user = await users_collection.insert_one(new_user)
+        
+        default_categories = [
+            {"name":"Bills"},
+            {"name":"Salary"},
+            {"name":"Entertainment"}
+        ]
+        
+        for category in default_categories:
+            category = Category(
+                name=category["name"],
+                user_id=str(inserted_user.inserted_id),
+                status=True
+            )
+            await CreateCategory(category)
+        
         
         if not inserted_user.inserted_id:
             raise HTTPException(status_code=400, detail="Failed to create user")
@@ -138,3 +156,30 @@ async def LoginUser(email: str, password: str):
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"error: {str(e)}")
+
+
+
+# Get All users Analytics
+async def GetAllUsersAnalytics():
+    try:
+        ActiveUsers = await users_collection.find({"status":True, "isAdmin":False}).to_list(length=None)
+        if not ActiveUsers:
+            raise HTTPException(status_code=404, detail="No users found")
+        
+        
+        NoActiveUsers = len(ActiveUsers)
+        InActiveUsers = 0
+        # ActiveUsers = [User_Out(user) for user in ActiveUsers]
+    
+       
+        AnalyticsData = {
+            "NoActiveUsers":NoActiveUsers,
+            "InActiveUsers":InActiveUsers,
+            "ActiveUsers": [User_Out(user) for user in ActiveUsers],
+        }
+        
+        return JSONResponse(status_code=200,content=AnalyticsData) 
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"error: {str(e)}")
+    

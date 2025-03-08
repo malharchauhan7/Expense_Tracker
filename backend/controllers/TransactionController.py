@@ -261,3 +261,10 @@ async def GetAnalyticsByUserId(user_id:ObjectId):
         
     except Exception as e:
         raise HTTPException(status_code=500,detail=f"error: {str(e)}")
+    
+# ------------ Get Analytics of All Transactions for Admin -------------
+async def GetAllTransactionsAnalytics():
+    try:
+        transactions = transaction_collection.find() 
+    except Exception as e:
+        raise HTTPException(status_code=500,detail=f"error {str(e)}")

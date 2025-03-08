@@ -9,6 +9,7 @@ import axios from "axios";
 import Transactions from "./components/user/Transactions";
 import PrivateRoutes from "./hooks/PrivateRoutes";
 import Home from "./components/pages/Home";
+import UsersManagement from "./components/admin/UsersManagement";
 const App = () => {
   axios.defaults.baseURL = "http://localhost:8000";
   return (
@@ -18,13 +19,14 @@ const App = () => {
       <Route path="/signup" element={<Signup />} />
       <Route element={<PrivateRoutes />}>
         <Route path="/user" element={<Sidebar />}>
-          <Route index element={<Navigate to="/user/transactions" replace />} />
+          <Route index element={<Navigate to="/user/dashboard" replace />} />
           <Route path="dashboard" element={<UserDashboard />} />
           <Route path="transactions" element={<Transactions />} />
         </Route>
         <Route path="/admin" element={<Sidebar />}>
           <Route index element={<Navigate to="/admin/dashboard" replace />} />
           <Route path="dashboard" element={<AdminDashboard />} />
+          <Route path="users" element={<UsersManagement />}></Route>
         </Route>
       </Route>
     </Routes>

@@ -19,9 +19,8 @@ const Transactions = () => {
   const [transactions, setTransactions] = useState([]);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [refresh, setRefresh] = useState(false);
-  const [categories, setcategories] = useState([]);
 
-  // GET ALL TRANSACTIONS BY USER
+  // GET ALL TRANSACTIONS BY USER_ID
   const HandleGetAllTransactions = async () => {
     try {
       const user_id = localStorage.getItem("user_id");
@@ -42,18 +41,7 @@ const Transactions = () => {
       console.error(error);
     }
   };
-  // GET ALL CATEGORIES BY USER
-  const HandleGetAllCategoriesByUser = async () => {
-    try {
-      const user_id = localStorage.getItem("user_id");
-      const resp = await axios.get("/api/category/user/" + user_id);
-      // console.log(resp.data);
-      setcategories(resp.data);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-  // GET ALL CATEGORIES BY DELETE
+  // Delete  TRANSACTIONS BY USER_ID
   const HandleDeleteTransactionbyId = async (id) => {
     try {
       await axios.delete(`/api/transactions/${id}`);
@@ -69,9 +57,6 @@ const Transactions = () => {
   useEffect(() => {
     HandleGetAllTransactions();
   }, [refresh]);
-  useEffect(() => {
-    HandleGetAllCategoriesByUser();
-  }, []);
 
   return (
     <div className="p-6 bg-gray-50">
@@ -89,7 +74,6 @@ const Transactions = () => {
           setIsCategoryModalOpen(false);
           setRefresh((prev) => !prev);
         }}
-        categories={categories}
       />
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">

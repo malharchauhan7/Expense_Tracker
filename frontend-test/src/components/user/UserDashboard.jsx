@@ -10,6 +10,7 @@ const UserDashboard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [transactions, setTransactions] = useState([]);
   const [refresh, setRefresh] = useState(false);
+  const [Name, setName] = useState("");
   const [stats, setStats] = useState({
     balance: 0,
     income: 0,
@@ -19,7 +20,13 @@ const UserDashboard = () => {
   useEffect(() => {
     HandleGetAllTransactions();
     HandleGetAnalytics();
+    HandleGetName();
   }, [refresh]);
+
+  const HandleGetName = () => {
+    const name = localStorage.getItem("name");
+    setName(name);
+  };
 
   // GET ANALYTICS BY USER_ID
   const HandleGetAnalytics = async () => {
@@ -79,11 +86,16 @@ const UserDashboard = () => {
 
   return (
     <div className="p-6 bg-gray-50">
-      <AddExpense isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      <AddExpense
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false), setRefresh((prev) => !prev);
+        }}
+      />
       {/* Welcome Section */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-800 mb-2">
-          Welcome back, <span className="text-blue-600">User!</span>
+          Welcome back, <span className="text-blue-600">{Name} !</span>
         </h1>
         <p className="text-gray-600">
           Track your expenses and savings with ease

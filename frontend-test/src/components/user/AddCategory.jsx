@@ -5,7 +5,10 @@ import { useForm } from "react-hook-form";
 import toast, { Toaster } from "react-hot-toast";
 import { useEffect, useState } from "react";
 
-const AddCategory = ({ isOpen, onClose, categories }) => {
+const AddCategory = ({ isOpen, onClose }) => {
+  const [categories, setcategories] = useState([]);
+  const [refresh, setRefresh] = useState(false);
+
   const { register, handleSubmit, reset } = useForm({
     defaultValues: {
       name: "",
@@ -13,7 +16,19 @@ const AddCategory = ({ isOpen, onClose, categories }) => {
     },
   });
   // console.log(categories);
-
+  useEffect(() => {
+    HandleGetAllCategoriesByUser();
+  }, [refresh]);
+  const HandleGetAllCategoriesByUser = async () => {
+    try {
+      const user_id = localStorage.getItem("user_id");
+      const resp = await axios.get("/api/category/user/" + user_id);
+      // console.log(resp.data);
+      setcategories(resp.data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
   const HandleDeleteCategories = async (id) => {
     try {
       const resp = await axios.delete(`/api/category/${id}`);
@@ -45,6 +60,7 @@ const AddCategory = ({ isOpen, onClose, categories }) => {
       console.log(payload);
       reset();
       onClose();
+      setRefresh((prev) => !prev);
     } catch (error) {
       console.error(error);
       toast.error("Failed to Add Category");
@@ -126,9 +142,9 @@ const AddCategory = ({ isOpen, onClose, categories }) => {
             <h1 className="block text-sm font-medium text-gray-700 mb-2">
               Your Categories
             </h1>
-            <div className="flex  flex-col gap-1  text-lg mb-2 ">
+            <div className="flex  flex-col gap-1  text-lg mb-2 bg-gray-100/50 rounded-md">
               {categories.map((cat) => (
-                <div className="flex gap-2 items-center justify-between hover:bg-gray-100/70 py-1 rounded-md px-3">
+                <div className="flex gap-2 items-center justify-between  py-1  px-2">
                   <h1 className="select-none">{cat.name}</h1>
                   <FaTrash
                     className=" text-gray-400 hover:text-red-500 transition-colors cursor-pointer"
