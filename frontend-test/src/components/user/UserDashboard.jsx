@@ -33,7 +33,7 @@ const UserDashboard = () => {
     try {
       const user_id = localStorage.getItem("user_id");
       const { data } = await axios.get(
-        `/api/transactions/analytics/user/${user_id}`
+        `/api/analytics/transactions/user/${user_id}`
       );
 
       setStats({

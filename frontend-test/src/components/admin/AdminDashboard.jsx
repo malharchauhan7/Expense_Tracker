@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   FaUsers,
   FaWallet,
@@ -7,17 +7,43 @@ import {
   FaSearch,
   FaFilter,
 } from "react-icons/fa";
+import axios from "axios";
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [searchTerm, setSearchTerm] = useState("");
-
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    activeUsers: 0,
+    totalTransactions: 0,
+    flaggedTransactions: 0,
+  });
   // Dummy data - replace with real data
-  const stats = {
-    totalUsers: 1234,
-    activeUsers: 892,
-    totalTransactions: 5678,
-    flaggedTransactions: 23,
+  // const stats = {
+  //   totalUsers: 1234,
+  //   activeUsers: 892,
+  //   totalTransactions: 5678,
+  //   flaggedTransactions: 23,
+  // };
+
+  useEffect(() => {
+    HandleGetAllDashboardAnalytics();
+  }, []);
+
+  const HandleGetAllDashboardAnalytics = async () => {
+    try {
+      const respUsers = await axios.get("/api/analytics/users/");
+      const respTransactions = await axios.get("api/analytics/transactions/");
+      // console.log(respTransactions.data);
+      setStats({
+        totalUsers: respUsers.data.TotalUsers,
+        activeUsers: respUsers.data.NoOfActiveUsers,
+        totalTransactions: respTransactions.data.TotalTransactions,
+        flaggedTransactions: respTransactions.data.NoOfInActiveTransactions,
+      });
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const recentUsers = [
@@ -70,7 +96,6 @@ const AdminDashboard = () => {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-800">Admin Dashboard</h1>
-        <p className="text-gray-600">Manage your application and users</p>
       </div>
 
       {/* Stats Grid */}

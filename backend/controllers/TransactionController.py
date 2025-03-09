@@ -18,10 +18,10 @@ def Transaction_Out(transaction):
         "transaction_type": transaction["transaction_type"],
         "amount": transaction["amount"],
         "description": transaction["description"],
-        "date": transaction["date"],
+        "date": transaction["date"].isoformat() if transaction["date"] else None,
         "status": transaction["status"],
-        "updated_at": transaction["updated_at"],
-        "created_at": transaction["created_at"],
+        "updated_at": transaction["updated_at"].isoformat() if transaction["updated_at"] else None,
+        "created_at": transaction["created_at"].isoformat() if transaction["created_at"] else None,
     }
     
     
@@ -37,7 +37,7 @@ async def GetALlTransactions()->list[dict]:
                     category["_id"] = str(category["_id"])
                     
                     transaction["category_id"] = {
-                        "_id": str(category["_id"]),
+                        "_id": str(category["_id"]),  
                         "name": category["name"],
                         "status": category.get("status", True),
                         "created_at": category.get("created_at"),
@@ -265,6 +265,23 @@ async def GetAnalyticsByUserId(user_id:ObjectId):
 # ------------ Get Analytics of All Transactions for Admin -------------
 async def GetAllTransactionsAnalytics():
     try:
-        transactions = transaction_collection.find() 
+        Activetransactions = await transaction_collection.find({"status":True}).to_list(length=None)
+        InActivetransactions = await transaction_collection.find({"status":False}).to_list(length=None)
+        
+        NoOfActiveTransactions = len(Activetransactions)
+        NoOfInActiveTransactions = len(InActivetransactions)
+        
+        TotalTransactions = NoOfActiveTransactions+NoOfInActiveTransactions
+        
+        analytics_data = {
+            "TotalTransactions":TotalTransactions,
+            "NoOfActiveTransactions":NoOfActiveTransactions,
+            "NoOfInActiveTransactions":NoOfInActiveTransactions,
+            "Activetransactions":[Transaction_Out(item) for item in Activetransactions],
+            "InActivetransactions":[Transaction_Out(item) for item in InActivetransactions]
+        }
+        
+        return JSONResponse(status_code=200,content=analytics_data)
+        
     except Exception as e:
         raise HTTPException(status_code=500,detail=f"error {str(e)}")

@@ -51,9 +51,7 @@ async def CreateUser(user: User):
         if existing_user:
             raise HTTPException(status_code=400, detail="Email already registered")
 
-        
-        
-        
+
         current_time = datetime.now(UTC)
         new_user = user.model_dump(exclude={"id"})
         new_user.update({
@@ -69,13 +67,14 @@ async def CreateUser(user: User):
             {"name":"Entertainment"}
         ]
         
-        for category in default_categories:
-            category = Category(
-                name=category["name"],
-                user_id=str(inserted_user.inserted_id),
-                status=True
-            )
-            await CreateCategory(category)
+        if not new_user["isAdmin"] :
+            for category in default_categories:
+                category = Category(
+                    name=category["name"],
+                    user_id=str(inserted_user.inserted_id),
+                    status=True
+                )
+                await CreateCategory(category)
         
         
         if not inserted_user.inserted_id:
@@ -166,16 +165,19 @@ async def GetAllUsersAnalytics():
         if not ActiveUsers:
             raise HTTPException(status_code=404, detail="No users found")
         
-        
+        InActiveUsers = await users_collection.find({"status":False, "isAdmin":False}).to_list(length=None)
+           
         NoActiveUsers = len(ActiveUsers)
-        InActiveUsers = 0
+        NoOfInActiveUsers = len(InActiveUsers)
         # ActiveUsers = [User_Out(user) for user in ActiveUsers]
-    
+        TotalUsers = NoActiveUsers + NoOfInActiveUsers
        
         AnalyticsData = {
-            "NoActiveUsers":NoActiveUsers,
-            "InActiveUsers":InActiveUsers,
+            "TotalUsers":TotalUsers,
+            "NoOfActiveUsers":NoActiveUsers,
+            "NoOfInActiveUsers":NoOfInActiveUsers,
             "ActiveUsers": [User_Out(user) for user in ActiveUsers],
+            "InActiveUsers":[User_Out(user) for user in InActiveUsers]
         }
         
         return JSONResponse(status_code=200,content=AnalyticsData) 
