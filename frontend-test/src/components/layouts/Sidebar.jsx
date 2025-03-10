@@ -125,13 +125,7 @@ const Sidebar = () => {
       },
     },
   };
-  const menuItems = [
-    { icon: <FaUser />, text: "Profile", path: "profile" },
-    { icon: <FaTachometerAlt />, text: "Dashboard", path: "dashboard" },
-    { icon: <FaUsers />, text: "Users", path: "users" },
-    { icon: <GrTransaction />, text: "Transactions", path: "transactions" },
-    { icon: <FaCog />, text: "Settings", path: "settings" },
-  ];
+
   const adminMenuItems = [
     { icon: <FaUser />, text: "Profile", path: "profile" },
 

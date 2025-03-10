@@ -6,6 +6,10 @@ from fastapi import HTTPException
 from fastapi.responses import JSONResponse
 from controllers.CategoryController import CreateCategory
 from models.CategoryModel import Category
+from utils.SendMail import send_mail
+import random
+
+
 def User_Out(user):
     return {
         "_id": str(user["_id"]),
@@ -53,10 +57,12 @@ async def CreateUser(user: User):
 
 
         current_time = datetime.now(UTC)
+        random_otp = random.randrange(1000,10000)
         new_user = user.model_dump(exclude={"id"})
         new_user.update({
             "created_at": current_time,
-            "updated_at": current_time
+            "updated_at": current_time,
+            "verifyOTP":random_otp
         })
         
         inserted_user = await users_collection.insert_one(new_user)
@@ -79,7 +85,8 @@ async def CreateUser(user: User):
         
         if not inserted_user.inserted_id:
             raise HTTPException(status_code=400, detail="Failed to create user")
-            
+        
+
         return await GetUserById(str(inserted_user.inserted_id))
         
     except Exception as e:
@@ -185,3 +192,39 @@ async def GetAllUsersAnalytics():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"error: {str(e)}")
     
+
+
+# Send OTP Mail
+async def SendOTPMail(user_email:str):
+    try:
+        user = await users_collection.find_one({"email":user_email})
+        if not user:
+            return JSONResponse(status_code=404,content={"success":False,"message":"User Not Found! Please Verify Email"})
+        
+        to_email = user["email"]
+        subject = "OTP Verification - ExpanseMate"
+        text = f'''
+        Dear {user['name']},
+        
+        Welcome to ExpanseMate!
+        
+        Your OTP Verification code is : {user['verifyOTP']}
+        '''
+        send_mail(to_email,subject,text)
+        return JSONResponse(status_code=200,content={"success":True,"messaege":"OTP Mail sent successfully"})
+    except Exception as e:
+        return HTTPException(status_code=404,detail=f"error {str(e)}")
+    
+# Verify OTP 
+async def VerifyOTPCode(user_email:str,verifyOTP:int):
+    try:
+        user = await users_collection.find_one({"email":user_email})
+        if not user:
+            raise HTTPException(status_code=404,detail="User not found!")
+        
+        if user.get('verifyOTP') != verifyOTP:
+            return JSONResponse(status_code=404,content={"success":False,"messaege":"Invalid OTP!"})
+
+        return JSONResponse(status_code=200,content={"success":True,"messaege":"OTP Verified!"})
+    except Exception as e:
+        return HTTPException(status_code=404,detail=f"error {str(e)}")

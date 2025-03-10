@@ -8,6 +8,7 @@ class User(BaseModel):
     name: str
     email: str
     password: str
+    verifyOTP:Optional[int] = 0000
     isAdmin: Optional[bool]=False
     status: Optional[bool] = True
     updated_at: Optional[datetime] = None
