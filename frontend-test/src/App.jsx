@@ -14,6 +14,13 @@ const UsersManagement = lazy(() =>
   import("./components/admin/UsersManagement")
 );
 
+// Profile and settings
+const UserProfile = lazy(() => import("./components/user/UserProfile"));
+const UserSettings = lazy(() => import("./components/user/UserSettings"));
+
+const AdminProfile = lazy(() => import("./components/admin/AdminProfile"));
+const AdminSettings = lazy(() => import("./components/admin/AdminSettings"));
+
 const Loader = () => (
   <div className="flex items-center justify-center min-h-screen">
     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
@@ -33,11 +40,15 @@ const App = () => {
             <Route index element={<Navigate to="/user/dashboard" replace />} />
             <Route path="dashboard" element={<UserDashboard />} />
             <Route path="transactions" element={<Transactions />} />
+            <Route path="profile" element={<UserProfile />} />
+            <Route path="settings" element={<UserSettings />} />
           </Route>
           <Route path="/admin" element={<Sidebar />}>
             <Route index element={<Navigate to="/admin/dashboard" replace />} />
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="users" element={<UsersManagement />}></Route>
+            <Route path="profile" element={<AdminProfile />} />
+            <Route path="settings" element={<AdminSettings />} />
           </Route>
         </Route>
       </Routes>
