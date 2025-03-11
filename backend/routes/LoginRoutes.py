@@ -16,6 +16,10 @@ class SignupData(BaseModel):
     status: bool = True
     isAdmin: bool = False
 
+class OTPData(BaseModel):
+    email:str
+    otpcode:int
+
 @router.post("/login", response_model=Dict)
 async def login(login_data: LoginData):
     return await LoginUser(login_data.email, login_data.password)
@@ -30,6 +34,6 @@ async def signup(signup_data: SignupData):
 async def send_otp_mail(user_email:str):
     return await SendOTPMail(user_email)
 
-@router.get('/verify-otp/{user_email}')
-async def verify_otp(user_email:str,verifyOTP:int):
-    return await VerifyOTPCode(user_email,verifyOTP)
+@router.post('/verify-otp')
+async def verify_otp(OTPData:OTPData):
+    return await VerifyOTPCode(OTPData.email,OTPData.otpcode)

@@ -4,44 +4,61 @@ import { FaEnvelope, FaLock } from "react-icons/fa";
 import { useForm } from "react-hook-form";
 import axios from "axios";
 import toast, { Toaster } from "react-hot-toast";
+import OTPModal from "./OTPModal";
+const Loader = () => (
+  <div className="flex items-center justify-center">
+    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+  </div>
+);
 
 const Login = () => {
-  const { register, handleSubmit } = useForm();
+  const { register, handleSubmit, getValues } = useForm();
+  const [isVerified, setisVerified] = useState(false);
+  const [isModelOpen, setisModelOpen] = useState(false);
+  const [isLoading, setisLoading] = useState(false);
   const navigate = useNavigate();
 
   const HandleLogin = async (data) => {
     console.log(data);
     try {
-      const resp = await axios.post("/api/login", data);
-      console.log(resp.data);
-      if (resp.status === 200) {
-        toast.success("Login Success", {
-          duration: 1500,
-          position: "bottom-center",
-          className: "bg-gray-500",
-        });
-        if (resp.data.isAdmin === true) {
-          setTimeout(() => {
-            navigate("/admin");
-          }, 2000);
+      if (isVerified) {
+        setisLoading(true);
+        const resp = await axios.post("/api/login", data);
+
+        if (resp.status === 200) {
+          toast.success("Login Success", {
+            duration: 1500,
+            position: "bottom-center",
+          });
+
           localStorage.setItem("user_id", resp.data._id);
           localStorage.setItem("name", resp.data.name);
           localStorage.setItem("isAdmin", resp.data.isAdmin);
-        } else {
+
           setTimeout(() => {
-            navigate("/user");
-          }, 2000);
-          localStorage.setItem("user_id", resp.data._id);
-          localStorage.setItem("name", resp.data.name);
-          localStorage.setItem("isAdmin", resp.data.isAdmin);
+            navigate(resp.data.isAdmin ? "/admin" : "/user");
+          }, 1500);
+        }
+      } else {
+        setisLoading(true);
+        const resp = await axios.get(`/api/send-otp/${data.email}`);
+
+        if (resp.data) {
+          setisModelOpen(true);
+          toast.success("OTP sent successfully!", {
+            duration: 1500,
+            position: "bottom-center",
+          });
         }
       }
     } catch (error) {
-      toast.error("User Not Found", {
+      toast.error(error.response?.data?.message || "Something went wrong", {
         duration: 1500,
         position: "bottom-center",
       });
-      console.log("Error in login" + error);
+      console.error("Error:", error);
+    } finally {
+      setisLoading(false);
     }
   };
 
@@ -114,9 +131,22 @@ const Login = () => {
           <button
             type="submit"
             className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold transition-all duration-200 shadow-md hover:shadow-lg hover:ring-2 hover:ring-indigo-500 cursor-pointer"
+            disabled={isLoading}
           >
-            Sign in
+            {isLoading ? <Loader /> : isVerified ? "Sign In" : "Generate OTP"}
           </button>
+
+          <OTPModal
+            isOpen={isModelOpen}
+            onClose={() => setisModelOpen(false)}
+            onVerify={(success) => {
+              if (success) {
+                setisVerified(true);
+              }
+            }}
+            isLoading={isLoading}
+            email={getValues("email")}
+          />
 
           {/* Sign Up Link */}
           <p className="text-center text-sm text-gray-300">

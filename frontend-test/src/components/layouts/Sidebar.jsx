@@ -156,7 +156,7 @@ const Sidebar = () => {
     localStorage.removeItem("name");
     localStorage.removeItem("isAdmin");
     setTimeout(() => {
-      toast.success("LogOut Successfully");
+      toast.success("Logout Successfully");
       navigate("/login");
     }, 1500);
   };
