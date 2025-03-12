@@ -10,7 +10,7 @@ from fastapi.responses import JSONResponse
 def Transaction_Out(transaction):
     return {
         "_id": str(transaction["_id"]),
-        "user_id": str(transaction["user_id"]["_id"]) if isinstance(transaction["user_id"], dict) else str(transaction["user_id"]),
+        "user_id": transaction["user_id"] if isinstance(transaction["user_id"], dict) else str(transaction["user_id"]),
         "category_id": transaction["category_id"] if isinstance(transaction["category_id"], dict) else {
             "_id": str(transaction["category_id"]),
             "name": "Uncategorized"
@@ -267,6 +267,17 @@ async def GetAllTransactionsAnalytics():
     try:
         Activetransactions = await transaction_collection.find({"status":True}).to_list(length=None)
         InActivetransactions = await transaction_collection.find({"status":False}).to_list(length=None)
+        
+        for transaction in Activetransactions:
+            if "user_id" in transaction and isinstance(transaction["user_id"],ObjectId):
+                user = await users_collection.find_one({"_id":transaction["user_id"]})
+                if user:
+                    transaction["user_id"] = {
+                        "_id": str(user["_id"]),
+                        "name": user["name"]
+                    }
+        
+        
         
         NoOfActiveTransactions = len(Activetransactions)
         NoOfInActiveTransactions = len(InActivetransactions)

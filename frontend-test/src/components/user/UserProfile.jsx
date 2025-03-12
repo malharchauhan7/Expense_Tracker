@@ -1,16 +1,70 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FaCamera, FaEdit, FaSave, FaTimes } from "react-icons/fa";
+import { useForm } from "react-hook-form"; // Add this import
+import axios from "axios";
+import toast, { Toaster } from "react-hot-toast";
+import { format } from "date-fns";
+
+const formatDate = (dateString) => {
+  try {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    return isNaN(date.getTime()) ? "N/A" : format(date, "MMM dd, yyyy");
+  } catch (error) {
+    console.error("Date formatting error:", error);
+    return "N/A";
+  }
+};
 
 const UserProfile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [image, setImage] = useState(null);
-  const [formData, setFormData] = useState({
-    name: "John Doe",
-    email: "john@example.com",
-    phone: "+1 234 567 890",
-    occupation: "Software Developer",
-    location: "New York, USA",
+  const { register, handleSubmit, setValue, watch } = useForm({
+    defaultValues: {
+      name: "",
+      email: "",
+      member_since: "",
+    },
   });
+
+  useEffect(() => {
+    HandleGetUserDetailsById();
+  }, []);
+
+  const HandleGetUserDetailsById = async () => {
+    try {
+      const user_id = localStorage.getItem("user_id");
+      if (!user_id) {
+        toast.error("No User Found!");
+        return;
+      }
+
+      const resp = await axios.get("/api/users/" + user_id);
+      // Update form values
+      setValue("name", resp.data.name);
+      setValue("email", resp.data.email);
+      setValue("member_since", resp.data.created_at);
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to fetch user details");
+    }
+  };
+
+  const onSubmit = async (data) => {
+    try {
+      const user_id = localStorage.getItem("user_id");
+      await axios.put(`/api/users/${user_id}`, {
+        name: data.name,
+        email: data.email,
+      });
+
+      toast.success("Profile updated successfully!");
+      setIsEditing(false);
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to update profile");
+    }
+  };
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -23,17 +77,10 @@ const UserProfile = () => {
     }
   };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="max-w-3xl mx-auto">
+        <Toaster />
         {/* Profile Header */}
         <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
           <div className="flex flex-col items-center">
@@ -81,51 +128,83 @@ const UserProfile = () => {
 
           {/* Profile Form */}
           <div className="space-y-6">
-            {Object.entries(formData).map(([key, value]) => (
-              <div key={key}>
-                <label className="block text-sm font-medium text-gray-700 mb-2 capitalize">
-                  {key}
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+              {/* Name Field */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Name
                 </label>
-                {isEditing ? (
-                  key === "bio" ? (
-                    <textarea
-                      name={key}
-                      value={value}
-                      onChange={handleInputChange}
-                      className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      rows="4"
-                    />
+                <input
+                  type="text"
+                  disabled={!isEditing}
+                  className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  {...register("name", { required: "Name is required" })}
+                />
+              </div>
+
+              {/* Email Field */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  disabled={true}
+                  className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  {...register("email")}
+                />
+              </div>
+
+              {/* Member Since Field */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Member Since
+                </label>
+                <input
+                  type="text"
+                  disabled={true}
+                  className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={formatDate(watch("member_since"))}
+                  readOnly
+                />
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex space-x-4">
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(!isEditing)}
+                  className="flex-1 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors flex items-center justify-center space-x-2"
+                >
+                  {isEditing ? (
+                    <>
+                      <FaTimes />
+                      <span>Cancel</span>
+                    </>
                   ) : (
-                    <input
-                      type={key === "email" ? "email" : "text"}
-                      name={key}
-                      value={value}
-                      onChange={handleInputChange}
-                      className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  )
-                ) : (
-                  <p className="text-gray-800 p-3 bg-gray-50 rounded-lg">
-                    {value}
-                  </p>
+                    <>
+                      <FaEdit />
+                      <span>Edit Profile</span>
+                    </>
+                  )}
+                </button>
+
+                {isEditing && (
+                  <button
+                    type="submit"
+                    className="flex-1 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2"
+                  >
+                    <FaSave />
+                    <span>Save Changes</span>
+                  </button>
                 )}
               </div>
-            ))}
-
-            {isEditing && (
-              <button
-                onClick={() => setIsEditing(false)}
-                className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2"
-              >
-                <FaSave />
-                <span>Save Changes</span>
-              </button>
-            )}
+            </form>
           </div>
         </div>
 
         {/* Additional Sections */}
-        <div className="bg-white rounded-xl shadow-sm p-6">
+        <div className="bg-white rounded-xl shadow-sm p-6 mb-2">
           <h2 className="text-xl font-bold text-gray-800 mb-4">
             Account Statistics
           </h2>
@@ -140,10 +219,16 @@ const UserProfile = () => {
             </div>
             <div className="p-4 bg-purple-50 rounded-lg">
               <p className="text-sm text-gray-600">Member Since</p>
-              <p className="text-2xl font-bold text-purple-600">2023</p>
+              <p className="text-2xl font-bold text-purple-600">
+                {formatDate(watch("member_since"))}
+              </p>
             </div>
           </div>
         </div>
+
+        {/* <button className="w-full py-3 bg-red-500 my-5 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center space-x-2">
+          Deactivate Account
+        </button> */}
       </div>
     </div>
   );

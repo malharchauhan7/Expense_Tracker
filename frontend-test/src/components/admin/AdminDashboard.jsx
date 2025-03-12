@@ -14,8 +14,10 @@ const AdminDashboard = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [stats, setStats] = useState({
     totalUsers: 0,
-    activeUsers: 0,
+    NoOfactiveUsers: 0,
+    ActiveUsers: [],
     totalTransactions: 0,
+    ActiveTransactions: [],
     flaggedTransactions: 0,
   });
   // Dummy data - replace with real data
@@ -35,9 +37,12 @@ const AdminDashboard = () => {
       const respUsers = await axios.get("/api/analytics/users/");
       const respTransactions = await axios.get("api/analytics/transactions/");
       // console.log(respTransactions.data);
+      // console.log(respUsers.data);
       setStats({
         totalUsers: respUsers.data.TotalUsers,
-        activeUsers: respUsers.data.NoOfActiveUsers,
+        ActiveUsers: respUsers.data.ActiveUsers,
+        NoOfactiveUsers: respUsers.data.NoOfActiveUsers,
+        ActiveTransactions: respTransactions.data.Activetransactions,
         totalTransactions: respTransactions.data.TotalTransactions,
         flaggedTransactions: respTransactions.data.NoOfInActiveTransactions,
       });
@@ -46,6 +51,7 @@ const AdminDashboard = () => {
     }
   };
 
+  console.log(stats);
   const recentUsers = [
     { id: 1, name: "John Doe", email: "john@example.com", status: "active" },
     {
@@ -108,7 +114,7 @@ const AdminDashboard = () => {
         />
         <StatCard
           title="Active Users"
-          value={stats.activeUsers}
+          value={stats.NoOfactiveUsers}
           icon={<FaUsers />}
           color="text-green-600"
         />
@@ -189,19 +195,19 @@ const AdminDashboard = () => {
                 </tr>
               </thead>
               <tbody>
-                {recentUsers.map((user) => (
+                {stats.ActiveUsers.map((user) => (
                   <tr key={user.id} className="border-b border-gray-100">
                     <td className="py-4 px-4">{user.name}</td>
                     <td className="py-4 px-4">{user.email}</td>
                     <td className="py-4 px-4">
                       <span
                         className={`px-2 py-1 rounded-full text-xs ${
-                          user.status === "active"
+                          user.status === true
                             ? "bg-green-100 text-green-600"
                             : "bg-red-100 text-red-600"
                         }`}
                       >
-                        {user.status}
+                        {user.status === true ? "active" : "inactive"}
                       </span>
                     </td>
                     <td className="py-4 px-4">
@@ -229,18 +235,20 @@ const AdminDashboard = () => {
                 </tr>
               </thead>
               <tbody>
-                {recentTransactions.map((transaction) => (
+                {stats.ActiveTransactions.map((transaction) => (
                   <tr key={transaction.id} className="border-b border-gray-100">
                     <td className="py-4 px-4">{transaction.user}</td>
                     <td className="py-4 px-4">
                       <span
                         className={`px-2 py-1 rounded-full text-xs ${
-                          transaction.type === "expense"
+                          transaction.transaction_type === "Expense"
                             ? "bg-red-100 text-red-600"
                             : "bg-green-100 text-green-600"
                         }`}
                       >
-                        {transaction.type}
+                        {transaction.transaction_type === "Expense"
+                          ? "expense"
+                          : "income"}
                       </span>
                     </td>
                     <td className="py-4 px-4">${transaction.amount}</td>
