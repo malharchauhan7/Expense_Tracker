@@ -201,6 +201,11 @@ async def SendOTPMail(user_email:str):
         if not user:
             return JSONResponse(status_code=404,content={"success":False,"message":"User Not Found! Please Verify Email"})
         
+        new_otp = random.randrange(1000, 10000)
+        current_time = datetime.now(UTC)
+        
+        await users_collection.update_one({"email": user_email}, {"$set": {"verifyOTP": new_otp, "updated_at": current_time}})
+        
         to_email = user["email"]
         subject = "OTP Verification - ExpanseMate"
         text = f'''
@@ -208,7 +213,7 @@ async def SendOTPMail(user_email:str):
         
         Welcome to ExpanseMate!
         
-        Your OTP Verification code is : {user['verifyOTP']}
+        Your OTP Verification code is : {new_otp}
         '''
         send_mail(to_email,subject,text)
         return JSONResponse(status_code=200,content={"success":True,"messaege":"OTP Mail sent successfully"})

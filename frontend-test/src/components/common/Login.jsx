@@ -37,7 +37,7 @@ const Login = () => {
 
           setTimeout(() => {
             navigate(resp.data.isAdmin ? "/admin" : "/user");
-          }, 1500);
+          }, 1000);
         }
       } else {
         setisLoading(true);
@@ -46,7 +46,7 @@ const Login = () => {
         if (resp.data) {
           setisModelOpen(true);
           toast.success("OTP sent successfully!", {
-            duration: 1500,
+            duration: 1200,
             position: "bottom-center",
           });
         }
