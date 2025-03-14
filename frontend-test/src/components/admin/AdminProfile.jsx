@@ -40,7 +40,7 @@ const AdminProfile = () => {
       }
 
       const resp = await axios.get("/api/users/" + user_id);
-      // Update form values
+
       setValue("name", resp.data.name);
       setValue("email", resp.data.email);
       setValue("member_since", resp.data.created_at);
@@ -108,7 +108,7 @@ const AdminProfile = () => {
             </div>
 
             {/* Action Buttons */}
-            <button
+            {/* <button
               onClick={() => setIsEditing(!isEditing)}
               className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors mb-6"
             >
@@ -123,7 +123,7 @@ const AdminProfile = () => {
                   <span>Edit Profile</span>
                 </>
               )}
-            </button>
+            </button> */}
           </div>
 
           {/* Profile Form */}

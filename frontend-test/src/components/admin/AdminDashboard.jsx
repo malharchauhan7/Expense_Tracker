@@ -8,9 +8,10 @@ import {
   FaFilter,
 } from "react-icons/fa";
 import axios from "axios";
+import { format } from "date-fns";
 
 const AdminDashboard = () => {
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useState("users");
   const [searchTerm, setSearchTerm] = useState("");
   const [stats, setStats] = useState({
     totalUsers: 0,
@@ -20,13 +21,6 @@ const AdminDashboard = () => {
     ActiveTransactions: [],
     flaggedTransactions: 0,
   });
-  // Dummy data - replace with real data
-  // const stats = {
-  //   totalUsers: 1234,
-  //   activeUsers: 892,
-  //   totalTransactions: 5678,
-  //   flaggedTransactions: 23,
-  // };
 
   useEffect(() => {
     HandleGetAllDashboardAnalytics();
@@ -38,11 +32,18 @@ const AdminDashboard = () => {
       const respTransactions = await axios.get("api/analytics/transactions/");
       // console.log(respTransactions.data);
       // console.log(respUsers.data);
+      const sortedUsers = [...respUsers.data.ActiveUsers].sort(
+        (a, b) => new Date(b.created_at) - new Date(a.created_at)
+      );
+      const sortedTransactions = [
+        ...respTransactions.data.Activetransactions,
+      ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
       setStats({
         totalUsers: respUsers.data.TotalUsers,
-        ActiveUsers: respUsers.data.ActiveUsers,
+        ActiveUsers: sortedUsers,
         NoOfactiveUsers: respUsers.data.NoOfActiveUsers,
-        ActiveTransactions: respTransactions.data.Activetransactions,
+        ActiveTransactions: sortedTransactions,
         totalTransactions: respTransactions.data.TotalTransactions,
         flaggedTransactions: respTransactions.data.NoOfInActiveTransactions,
       });
@@ -52,36 +53,6 @@ const AdminDashboard = () => {
   };
 
   console.log(stats);
-  const recentUsers = [
-    { id: 1, name: "John Doe", email: "john@example.com", status: "active" },
-    {
-      id: 2,
-      name: "Jane Smith",
-      email: "jane@example.com",
-      status: "inactive",
-    },
-    // Add more users
-  ];
-
-  const recentTransactions = [
-    {
-      id: 1,
-      user: "John Doe",
-      type: "expense",
-      amount: 299.99,
-      category: "Electronics",
-      date: "2024-02-20",
-    },
-    {
-      id: 2,
-      user: "Jane Smith",
-      type: "income",
-      amount: 5000,
-      category: "Salary",
-      date: "2024-02-19",
-    },
-    // Add more transactions
-  ];
 
   const StatCard = ({ title, value, icon, color }) => (
     <div className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-all">
@@ -237,7 +208,7 @@ const AdminDashboard = () => {
               <tbody>
                 {stats.ActiveTransactions.map((transaction) => (
                   <tr key={transaction.id} className="border-b border-gray-100">
-                    <td className="py-4 px-4">{transaction.user}</td>
+                    <td className="py-4 px-4">{transaction.user_id.name}</td>
                     <td className="py-4 px-4">
                       <span
                         className={`px-2 py-1 rounded-full text-xs ${
@@ -252,8 +223,12 @@ const AdminDashboard = () => {
                       </span>
                     </td>
                     <td className="py-4 px-4">${transaction.amount}</td>
-                    <td className="py-4 px-4">{transaction.category}</td>
-                    <td className="py-4 px-4">{transaction.date}</td>
+                    <td className="py-4 px-4">
+                      {transaction.category_id.name}
+                    </td>
+                    <td className="py-4 px-4">
+                      {format(new Date(transaction.date), "MMM dd, yyyy")}
+                    </td>
                   </tr>
                 ))}
               </tbody>

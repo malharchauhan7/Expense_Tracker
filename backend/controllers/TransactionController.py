@@ -12,9 +12,9 @@ def Transaction_Out(transaction):
         "_id": str(transaction["_id"]),
         "user_id": transaction["user_id"] if isinstance(transaction["user_id"], dict) else str(transaction["user_id"]),
         "category_id": transaction["category_id"] if isinstance(transaction["category_id"], dict) else {
-            "_id": str(transaction["category_id"]),
-            "name": "Uncategorized"
-        },
+            "_id":str(transaction["category_id"]),
+            "name":"Uncategorized"
+            },
         "transaction_type": transaction["transaction_type"],
         "amount": transaction["amount"],
         "description": transaction["description"],
@@ -268,7 +268,14 @@ async def GetAllTransactionsAnalytics():
         Activetransactions = await transaction_collection.find({"status":True}).to_list(length=None)
         InActivetransactions = await transaction_collection.find({"status":False}).to_list(length=None)
         
-        for transaction in Activetransactions:
+        for transaction in Activetransactions:  
+            if "category_id" in transaction and isinstance(transaction["category_id"], ObjectId):
+                category = await category_collection.find_one({"_id": transaction["category_id"]})
+                if category:
+                    transaction["category_id"] = {
+                        "_id": str(category["_id"]),
+                        "name": category.get("name", "Uncategorized"),
+                    }
             if "user_id" in transaction and isinstance(transaction["user_id"],ObjectId):
                 user = await users_collection.find_one({"_id":transaction["user_id"]})
                 if user:
