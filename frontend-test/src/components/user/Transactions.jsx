@@ -19,6 +19,7 @@ const Transactions = () => {
   const [transactions, setTransactions] = useState([]);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [refresh, setRefresh] = useState(false);
+  const [categories, setcategories] = useState([]);
 
   // GET ALL TRANSACTIONS BY USER_ID
   const HandleGetAllTransactions = async () => {
@@ -53,9 +54,21 @@ const Transactions = () => {
       toast.error("Failed to delete transaction");
     }
   };
+  // Get All Categories by user
+  const HandleGetAllCategoriesByUser = async () => {
+    try {
+      const user_id = localStorage.getItem("user_id");
+      const resp = await axios.get("/api/category/user/" + user_id);
+      // console.log(resp.data);
+      setcategories(resp.data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   useEffect(() => {
     HandleGetAllTransactions();
+    HandleGetAllCategoriesByUser();
   }, [refresh]);
 
   return (
@@ -122,10 +135,18 @@ const Transactions = () => {
             </select>
 
             <select className="form-select rounded-lg border-gray-200 focus:border-blue-500 focus:ring-blue-500">
-              <option value="">All Categories</option>
-              <option value="food">Food</option>
-              <option value="transport">Transport</option>
-              <option value="salary">Salary</option>
+              <option value="">Select category</option>
+              {categories.length > 0 ? (
+                <>
+                  {categories.map((category) => (
+                    <option key={category._id} value={category._id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </>
+              ) : (
+                <option>Add Category first</option>
+              )}
             </select>
 
             <input

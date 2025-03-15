@@ -108,7 +108,7 @@ const UserProfile = () => {
             </div>
 
             {/* Action Buttons */}
-            <button
+            {/* <button
               onClick={() => setIsEditing(!isEditing)}
               className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors mb-6"
             >
@@ -123,7 +123,7 @@ const UserProfile = () => {
                   <span>Edit Profile</span>
                 </>
               )}
-            </button>
+            </button> */}
           </div>
 
           {/* Profile Form */}
