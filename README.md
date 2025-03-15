@@ -1,4 +1,4 @@
-# Expense Tracker Application
+# ![ExpenseMate Logo](./images/logo.png) ExpenseMate - An Expense Tracker
 
 A full-stack web application for tracking personal and organizational expenses with separate user and admin interfaces.
 
