@@ -131,11 +131,11 @@ const Sidebar = () => {
 
     {
       icon: <FaTachometerAlt />,
-      text: "Admin Dashboard",
+      text: "Dashboard",
       path: "dashboard",
     },
     { icon: <FaUsers />, text: "Manage Users", path: "users" },
-    { icon: <FaCog />, text: "Admin Settings", path: "settings" },
+    { icon: <FaCog />, text: "Settings", path: "settings" },
   ];
 
   const userMenuItems = [

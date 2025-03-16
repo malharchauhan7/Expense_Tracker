@@ -1,5 +1,5 @@
 from bson import ObjectId
-from config.db import users_collection,category_collection
+from config.db import users_collection,category_collection,transaction_collection
 from models.UserModel import User
 from datetime import datetime,UTC
 from fastapi import HTTPException
@@ -17,6 +17,7 @@ def User_Out(user):
         "email": user["email"],
         "isAdmin": user["isAdmin"],
         "status": user["status"],
+        "transactions": user.get("transactions", 0),
         "updated_at": user["updated_at"].isoformat() if user["updated_at"] else None,
         "created_at": user["created_at"].isoformat() if user["created_at"] else None,
     }
@@ -27,6 +28,11 @@ async def GetAllUser():
         users = await users_collection.find().to_list(length=None)
         if not users:
             raise HTTPException(status_code=404, detail="No users found")
+        for user in users:
+            transactions = await transaction_collection.find({"user_id":user.get("_id")}).to_list(length=None)
+            
+            user["transactions"] = len(transactions) if transactions else 0
+        
         return [User_Out(user) for user in users]
         
     except Exception as e:
@@ -231,5 +237,36 @@ async def VerifyOTPCode(user_email:str,verifyOTP:int):
             return JSONResponse(status_code=404,content={"success":False,"messaege":"Invalid OTP!"})
 
         return JSONResponse(status_code=200,content={"success":True,"messaege":"OTP Verified!"})
+    except Exception as e:
+        return HTTPException(status_code=404,detail=f"error {str(e)}")
+    
+
+# --------------- Users Management for Admin -----------------
+
+
+
+# Get All Users Details 
+async def GetAllUsersByAdmin():
+    try:
+        
+        users = await users_collection.find({"isAdmin": False}).to_list(length=None)
+        if not users:
+            raise HTTPException(status_code=404, detail="No users found")
+        
+        for user in users:
+            transactions = await transaction_collection.find({"user_id":user.get("_id")}).to_list(length=None)
+            
+            user["transactions"] = len(transactions) if transactions else 0
+                
+            
+       
+       
+        return JSONResponse(
+            status_code=200,
+            content=[User_Out(user) for user in users]
+        )
+        
+        
+        
     except Exception as e:
         return HTTPException(status_code=404,detail=f"error {str(e)}")

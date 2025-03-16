@@ -1,7 +1,7 @@
 from config.db import transaction_collection,users_collection,category_collection
 from bson import ObjectId
-from controllers.UserController import GetUserById
-from controllers.CategoryController import GetCategoryById
+# from controllers.UserController import GetUserById
+# from controllers.CategoryController import GetCategoryById
 from models.TransactionsModel import Transaction
 from datetime import datetime,UTC
 from fastapi import HTTPException

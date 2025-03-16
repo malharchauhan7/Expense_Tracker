@@ -1,26 +1,58 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FaSearch, FaEdit, FaTrash, FaUserPlus } from "react-icons/fa";
+import axios from "axios";
+import { format } from "date-fns";
 
 const UsersManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("all");
+  const [users, setUsers] = useState([]);
+  const [filteredUsers, setFilteredUsers] = useState([]);
 
-  // Dummy data - replace with real API data
-  const users = [
-    {
-      id: 1,
-      name: "John Doe",
-      email: "john@example.com",
-      status: "active",
-      joinDate: "2024-01-15",
-      transactions: 45,
-    },
-    // Add more users as needed
-  ];
+  useEffect(() => {
+    GetAllUsersDetailsByAdmin();
+  }, []);
+
+  useEffect(() => {
+    filterUsers();
+  }, [selectedFilter, searchTerm, users]);
+
+  const filterUsers = () => {
+    let result = [...users];
+
+    if (selectedFilter !== "all") {
+      result = result.filter((user) => {
+        if (selectedFilter === "active") return user.status === true;
+        if (selectedFilter === "inactive") return user.status === false;
+        return true;
+      });
+    }
+
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
+      result = result.filter(
+        (user) =>
+          user.name.toLowerCase().includes(searchLower) ||
+          user.email.toLowerCase().includes(searchLower)
+      );
+    }
+
+    setFilteredUsers(result);
+  };
+
+  const GetAllUsersDetailsByAdmin = async () => {
+    try {
+      const admin_id = localStorage.getItem("user_id");
+      const { data } = await axios.get(`/api/admin/users/${admin_id}`);
+      setUsers(data);
+      setFilteredUsers(data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   return (
     <div className="p-6 bg-gray-50">
-      {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-800">Users Management</h2>
         <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
@@ -29,7 +61,6 @@ const UsersManagement = () => {
         </button>
       </div>
 
-      {/* Filters and Search */}
       <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
         <div className="flex flex-col md:flex-row gap-4 justify-between">
           <div className="flex gap-4">
@@ -56,7 +87,6 @@ const UsersManagement = () => {
         </div>
       </div>
 
-      {/* Users Table */}
       <div className="bg-white rounded-lg shadow-sm overflow-hidden">
         <table className="w-full">
           <thead className="bg-gray-50">
@@ -82,7 +112,7 @@ const UsersManagement = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
-            {users.map((user) => (
+            {filteredUsers.map((user) => (
               <tr key={user.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm font-medium text-gray-900">
@@ -95,16 +125,16 @@ const UsersManagement = () => {
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span
                     className={`px-2 py-1 text-xs rounded-full ${
-                      user.status === "active"
+                      user.status === true
                         ? "bg-green-100 text-green-800"
                         : "bg-red-100 text-red-800"
                     }`}
                   >
-                    {user.status}
+                    {user.status === true ? "active" : "inactive"}
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {new Date(user.joinDate).toLocaleDateString()}
+                  {format(new Date(user.created_at), "MMM dd, yyyy")}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {user.transactions}
@@ -122,6 +152,13 @@ const UsersManagement = () => {
               </tr>
             ))}
           </tbody>
+          {filteredUsers.length === 0 && (
+            <tr>
+              <td colSpan="6" className="px-6 py-4 text-center text-gray-500">
+                No users found matching your criteria
+              </td>
+            </tr>
+          )}
         </table>
       </div>
     </div>

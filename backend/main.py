@@ -6,6 +6,7 @@ from routes.CategoryRoutes import router as category_router
 from routes.TransactionsRoutes import router as transactions_router
 from routes.AnalyticsRoutes import router as analytics_router
 from routes.BudgetRoutes import router as budgets_router
+from routes.AdminRoutes import router as admin_router
 # Middlewares
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -21,6 +22,7 @@ app.add_middleware(
 
 # Include Routers
 app.include_router(user_router,prefix='/api',tags=["Users"])
+app.include_router(admin_router,prefix='/api',tags=["Admin"])
 app.include_router(login_router,prefix='/api',tags=["Login/Signup"])
 app.include_router(category_router,prefix='/api',tags=["Category"])
 app.include_router(transactions_router,prefix='/api',tags=["Transactions"])
