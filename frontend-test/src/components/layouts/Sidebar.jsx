@@ -8,6 +8,7 @@ import {
   FaUser,
   FaUsers,
   FaWallet,
+  FaMoneyBillWave,
 } from "react-icons/fa";
 import { GrTransaction } from "react-icons/gr";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -142,6 +143,7 @@ const Sidebar = () => {
     { icon: <FaUser />, text: "Profile", path: "profile" },
     { icon: <FaTachometerAlt />, text: "Dashboard", path: "dashboard" },
     { icon: <GrTransaction />, text: "Transactions", path: "transactions" },
+    { icon: <FaMoneyBillWave />, text: "Budgets", path: "addbudget" },
     { icon: <FaCog />, text: "Settings", path: "settings" },
   ];
 

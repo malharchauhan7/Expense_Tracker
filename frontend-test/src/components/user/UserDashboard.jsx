@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { FaWallet, FaArrowUp, FaArrowDown, FaChartBar } from "react-icons/fa";
 import AddExpense from "./AddExpense";
+import BudgetAlert from "./BudgetAlert";
 import toast, { Toaster } from "react-hot-toast";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
@@ -11,6 +12,7 @@ const UserDashboard = () => {
   const [transactions, setTransactions] = useState([]);
   const [refresh, setRefresh] = useState(false);
   const [Name, setName] = useState("");
+  const [budgetAnalytics, setBudgetAnalytics] = useState([]);
   const [stats, setStats] = useState({
     balance: 0,
     income: 0,
@@ -27,6 +29,20 @@ const UserDashboard = () => {
     const name = localStorage.getItem("name");
     setName(name);
   };
+
+  const fetchBudgetAnalytics = async () => {
+    try {
+      const userId = localStorage.getItem("user_id");
+      const response = await axios.get(`/api/budgets/analytics/${userId}`);
+      setBudgetAnalytics(response.data);
+    } catch (error) {
+      console.error("Failed to fetch budget analytics:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchBudgetAnalytics();
+  }, []);
 
   // GET ANALYTICS BY USER_ID
   const HandleGetAnalytics = async () => {
@@ -92,6 +108,7 @@ const UserDashboard = () => {
           setIsModalOpen(false), setRefresh((prev) => !prev);
         }}
       />
+
       {/* Welcome Section */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-800 mb-2">
@@ -130,6 +147,12 @@ const UserDashboard = () => {
         />
       </div>
 
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        {budgetAnalytics.length > 0 &&
+          budgetAnalytics?.map((budget) => (
+            <BudgetAlert key={budget.budget_id} budget={budget} />
+          ))}
+      </div>
       {/* Recent Transactions */}
       <div className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow duration-300">
         <div className="flex items-center justify-between mb-6">

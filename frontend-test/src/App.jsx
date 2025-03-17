@@ -13,6 +13,7 @@ const Transactions = lazy(() => import("./components/user/Transactions"));
 const UsersManagement = lazy(() =>
   import("./components/admin/UsersManagement")
 );
+const AddBudget = lazy(() => import("./components/user/AddBudget"));
 
 // Profile and settings
 const UserProfile = lazy(() => import("./components/user/UserProfile"));
@@ -42,6 +43,7 @@ const App = () => {
             <Route path="transactions" element={<Transactions />} />
             <Route path="profile" element={<UserProfile />} />
             <Route path="settings" element={<UserSettings />} />
+            <Route path="addbudget" element={<AddBudget />} />
           </Route>
           <Route path="/admin" element={<Sidebar />}>
             <Route index element={<Navigate to="/admin/dashboard" replace />} />

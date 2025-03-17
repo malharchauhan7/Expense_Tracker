@@ -1,6 +1,7 @@
 from fastapi import APIRouter,HTTPException
 from models.TransactionsModel import Transaction
 from controllers.TransactionController import GetAnalyticsByUserId,GetAllTransactionsAnalytics
+from controllers.BudgetController import GetBudgetAnalytics
 from controllers.UserController import GetAllUsersAnalytics
 from bson import ObjectId
 
@@ -16,3 +17,7 @@ async def get_all_users_analytics():
 @router.get("/analytics/transactions/")
 async def get_all_transactions_analytics():
     return await GetAllTransactionsAnalytics()
+
+@router.get('/budgets/analytics/{user_id}')
+async def get_budget_analytics(user_id: str):
+    return await GetBudgetAnalytics(user_id)

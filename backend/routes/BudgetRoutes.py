@@ -1,5 +1,5 @@
 from fastapi import APIRouter,HTTPException
-from controllers.BudgetController import GetAllBudgets,GetBudgetById,CreateBudget,GetBudgetByUserId
+from controllers.BudgetController import GetAllBudgets,GetBudgetById,CreateBudget,GetBudgetByUserId,DeleteBudgetById
 from controllers.UserController import GetUserById
 from bson import ObjectId
 from models.BudgetModel import Budget
@@ -27,3 +27,7 @@ async def get_budgets_by_userid(user_id:str):
     if not user:
         raise HTTPException(status_code=400,detail="User not found")
     return await GetBudgetByUserId(user_id)
+
+@router.delete('/budgets/{budget_id}')
+async def delete_budget_by_id(budget_id:str):
+    return await DeleteBudgetById(budget_id)
