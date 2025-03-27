@@ -12,7 +12,7 @@ const AddCategory = ({ isOpen, onClose }) => {
   const { register, handleSubmit, reset } = useForm({
     defaultValues: {
       name: "",
-      type: "Expense", // Add default type
+      category_type: "Expense",
       status: true,
     },
   });
@@ -50,7 +50,7 @@ const AddCategory = ({ isOpen, onClose }) => {
       const user_id = localStorage.getItem("user_id");
       const payload = {
         name: data.name,
-        category_type: data.category_type, // Add type to payload
+        category_type: data.category_type,
         user_id,
         status: true,
       };

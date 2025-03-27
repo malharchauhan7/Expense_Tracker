@@ -20,6 +20,9 @@ const Transactions = () => {
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [refresh, setRefresh] = useState(false);
   const [categories, setcategories] = useState([]);
+  const [filterType, setFilterType] = useState("");
+  const [filterCategory, setFilterCategory] = useState("");
+  const [filterDate, setFilterDate] = useState("");
 
   // GET ALL TRANSACTIONS BY USER_ID
   const HandleGetAllTransactions = async () => {
@@ -64,6 +67,20 @@ const Transactions = () => {
     } catch (error) {
       console.error(error);
     }
+  };
+
+  const getFilteredTransactions = () => {
+    return transactions.filter((transaction) => {
+      const matchesType =
+        !filterType || transaction.transaction_type === filterType;
+      const matchesCategory =
+        !filterCategory || transaction.category_id._id === filterCategory;
+      const matchesDate =
+        !filterDate ||
+        new Date(transaction.date).toISOString().split("T")[0] === filterDate;
+
+      return matchesType && matchesCategory && matchesDate;
+    });
   };
 
   useEffect(() => {
@@ -128,34 +145,45 @@ const Transactions = () => {
       {filterOpen && (
         <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <select className="form-select rounded-lg border-gray-200 focus:border-blue-500 focus:ring-blue-500">
+            <select
+              value={filterType}
+              onChange={(e) => setFilterType(e.target.value)}
+              className="form-select rounded-lg border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+            >
               <option value="">All Types</option>
-              <option value="expense">Expense</option>
-              <option value="income">Income</option>
+              <option value="Expense">Expense</option>
+              <option value="Income">Income</option>
             </select>
 
-            <select className="form-select rounded-lg border-gray-200 focus:border-blue-500 focus:ring-blue-500">
-              <option value="">Select category</option>
-              {categories.length > 0 ? (
-                <>
-                  {categories.map((category) => (
-                    <option key={category._id} value={category._id}>
-                      {category.name}
-                    </option>
-                  ))}
-                </>
-              ) : (
-                <option>Add Category first</option>
-              )}
+            <select
+              value={filterCategory}
+              onChange={(e) => setFilterCategory(e.target.value)}
+              className="form-select rounded-lg border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+            >
+              <option value="">All Categories</option>
+              {categories.map((category) => (
+                <option key={category._id} value={category._id}>
+                  {category.name}
+                </option>
+              ))}
             </select>
 
             <input
               type="date"
+              value={filterDate}
+              onChange={(e) => setFilterDate(e.target.value)}
               className="form-input rounded-lg border-gray-200 focus:border-blue-500 focus:ring-blue-500"
             />
 
-            <button className="px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700">
-              Apply Filters
+            <button
+              onClick={() => {
+                setFilterType("");
+                setFilterCategory("");
+                setFilterDate("");
+              }}
+              className="px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+            >
+              Clear Filters
             </button>
           </div>
         </div>
@@ -166,7 +194,7 @@ const Transactions = () => {
         <div className="grid grid-cols-1 divide-y divide-gray-100">
           {transactions.length > 0 ? (
             <>
-              {transactions?.map((transaction) => (
+              {getFilteredTransactions()?.map((transaction) => (
                 <div
                   key={transaction._id}
                   className="p-4 hover:bg-gray-50 transition-colors duration-150"
