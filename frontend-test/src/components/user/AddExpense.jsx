@@ -21,12 +21,15 @@ const AddExpense = ({ isOpen, onClose }) => {
     try {
       const user_id = localStorage.getItem("user_id");
       const resp = await axios.get("/api/category/user/" + user_id);
-      // console.log(resp.data);
       setcategories(resp.data);
     } catch (error) {
       console.error(error);
     }
   };
+
+  const filteredCategories = categories.filter(
+    (category) => category.category_type === transactionType
+  );
 
   useEffect(() => {
     HandleGetAllCategoriesByUser();
@@ -198,16 +201,18 @@ const AddExpense = ({ isOpen, onClose }) => {
                   required
                 >
                   <option value="">Select category</option>
-                  {categories.length > 0 ? (
+                  {filteredCategories.length > 0 ? (
                     <>
-                      {categories.map((category) => (
+                      {filteredCategories.map((category) => (
                         <option key={category._id} value={category._id}>
                           {category.name}
                         </option>
                       ))}
                     </>
                   ) : (
-                    <option>Add Category first</option>
+                    <option value="">
+                      No {transactionType} categories available
+                    </option>
                   )}
                 </select>
               </motion.div>

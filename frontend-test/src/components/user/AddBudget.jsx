@@ -4,14 +4,17 @@ import axios from "axios";
 import toast, { Toaster } from "react-hot-toast";
 import { FaMoneyBillWave, FaCalendarAlt, FaTrash } from "react-icons/fa";
 import { format } from "date-fns";
+import { startOfMonth, endOfMonth, parse } from "date-fns";
 
 const AddBudget = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [budgets, setBudgets] = useState([]);
+  const [useMonthSelection, setUseMonthSelection] = useState(false);
   const {
     register,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors },
   } = useForm();
 
@@ -39,6 +42,16 @@ const AddBudget = () => {
       console.log(error);
       toast.error("Failed to delete budget");
     }
+  };
+
+  const handleMonthChange = (monthYear) => {
+    const [year, month] = monthYear.split("-");
+    const date = new Date(year, parseInt(month) - 1);
+    const start = startOfMonth(date);
+    const end = endOfMonth(date);
+
+    setValue("start_date", format(start, "yyyy-MM-dd"));
+    setValue("end_date", format(end, "yyyy-MM-dd"));
   };
 
   const onSubmit = async (data) => {
@@ -193,48 +206,86 @@ const AddBudget = () => {
             </div>
 
             {/* Date Range Fields */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Start Date
+            <div className="space-y-4">
+              {/* Month Selection Toggle */}
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="useMonthSelection"
+                  checked={useMonthSelection}
+                  onChange={(e) => setUseMonthSelection(e.target.checked)}
+                  className="rounded text-blue-600 focus:ring-blue-500"
+                />
+                <label
+                  htmlFor="useMonthSelection"
+                  className="text-sm text-gray-600"
+                >
+                  Use Month Selection
                 </label>
-                <div className="relative">
-                  <FaCalendarAlt className="absolute left-3 top-3.5 text-gray-400" />
-                  <input
-                    type="date"
-                    {...register("start_date", {
-                      required: "Start date is required",
-                    })}
-                    className="w-full pl-10 p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                {errors.start_date && (
-                  <p className="mt-1 text-sm text-red-600">
-                    {errors.start_date.message}
-                  </p>
-                )}
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  End Date
-                </label>
-                <div className="relative">
-                  <FaCalendarAlt className="absolute left-3 top-3.5 text-gray-400" />
-                  <input
-                    type="date"
-                    {...register("end_date", {
-                      required: "End date is required",
-                    })}
-                    className="w-full pl-10 p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
+              {useMonthSelection ? (
+                // Month Selector
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Select Month
+                  </label>
+                  <div className="relative">
+                    <FaCalendarAlt className="absolute left-3 top-3.5 text-gray-400" />
+                    <input
+                      type="month"
+                      onChange={(e) => handleMonthChange(e.target.value)}
+                      className="w-full pl-10 p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      defaultValue={format(new Date(), "yyyy-MM")}
+                    />
+                  </div>
                 </div>
-                {errors.end_date && (
-                  <p className="mt-1 text-sm text-red-600">
-                    {errors.end_date.message}
-                  </p>
-                )}
-              </div>
+              ) : (
+                // Manual Date Selection
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Start Date
+                    </label>
+                    <div className="relative">
+                      <FaCalendarAlt className="absolute left-3 top-3.5 text-gray-400" />
+                      <input
+                        type="date"
+                        {...register("start_date", {
+                          required: "Start date is required",
+                        })}
+                        className="w-full pl-10 p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    {errors.start_date && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.start_date.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      End Date
+                    </label>
+                    <div className="relative">
+                      <FaCalendarAlt className="absolute left-3 top-3.5 text-gray-400" />
+                      <input
+                        type="date"
+                        {...register("end_date", {
+                          required: "End date is required",
+                        })}
+                        className="w-full pl-10 p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    {errors.end_date && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.end_date.message}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Description Field */}

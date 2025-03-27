@@ -10,6 +10,7 @@ def Category_Out(category):
         "_id":str(category["_id"]),
         "user_id": str(category["user_id"]["_id"]) if isinstance(category["user_id"], dict) else str(category["user_id"]),
         "name":category["name"],
+        "category_type": category["category_type"],
         "status":category["status"],
         "updated_at": category["updated_at"],
         "created_at": category["created_at"],
@@ -134,6 +135,25 @@ async def DeleteCategoryById(category_id:str):
 async def GetALLCategoriesByUserId(user_id:str):
     try:
         categories = await category_collection.find({"user_id":ObjectId(user_id)}).to_list(length=None)
+        for cat in categories:
+            cat["_id"] = str(cat["_id"])
+            cat["user_id"] = str(cat["user_id"])
+
+        return [Category_Out(cat) for cat in categories]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"error: {str(e)}")
+    
+    
+async def GetCategoriesByTypeAndUserId(user_id: str, category_type: str):
+    try:
+        if category_type not in ["Expense", "Income"]:
+            raise HTTPException(status_code=400, detail="Invalid category type")
+            
+        categories = await category_collection.find({
+            "user_id": ObjectId(user_id),
+            "type": category_type
+        }).to_list(length=None)
+        
         for cat in categories:
             cat["_id"] = str(cat["_id"])
             cat["user_id"] = str(cat["user_id"])

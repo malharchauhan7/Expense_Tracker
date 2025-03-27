@@ -12,6 +12,7 @@ const AddCategory = ({ isOpen, onClose }) => {
   const { register, handleSubmit, reset } = useForm({
     defaultValues: {
       name: "",
+      type: "Expense", // Add default type
       status: true,
     },
   });
@@ -49,6 +50,7 @@ const AddCategory = ({ isOpen, onClose }) => {
       const user_id = localStorage.getItem("user_id");
       const payload = {
         name: data.name,
+        category_type: data.category_type, // Add type to payload
         user_id,
         status: true,
       };
@@ -142,12 +144,26 @@ const AddCategory = ({ isOpen, onClose }) => {
             <h1 className="block text-sm font-medium text-gray-700 mb-2">
               Your Categories
             </h1>
-            <div className="flex  flex-col gap-1  text-lg mb-2 bg-gray-100/50 rounded-md">
+            <div className="flex flex-col gap-1 text-lg mb-2 bg-gray-100/50 rounded-md">
               {categories.map((cat) => (
-                <div className="flex gap-2 items-center justify-between  py-1  px-2">
-                  <h1 className="select-none">{cat.name}</h1>
+                <div
+                  key={cat._id}
+                  className="flex gap-2 items-center justify-between py-1 px-2"
+                >
+                  <div className="flex items-center gap-2">
+                    <h1 className="select-none">{cat.name}</h1>
+                    <span
+                      className={`text-xs px-2 py-1 rounded-full ${
+                        cat.category_type === "Expense"
+                          ? "bg-red-100 text-red-600"
+                          : "bg-green-100 text-green-600"
+                      }`}
+                    >
+                      {cat.category_type}
+                    </span>
+                  </div>
                   <FaTrash
-                    className=" text-gray-400 hover:text-red-500 transition-colors cursor-pointer"
+                    className="text-gray-400 hover:text-red-500 transition-colors cursor-pointer"
                     size={14}
                     onClick={() => HandleDeleteCategories(cat._id)}
                   />
@@ -172,6 +188,25 @@ const AddCategory = ({ isOpen, onClose }) => {
                   placeholder="Enter category name"
                   required
                 />
+              </motion.div>
+
+              {/* Category Type - New Addition */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Category Type
+                </label>
+                <select
+                  {...register("category_type", { required: true })}
+                  className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                >
+                  <option value="Expense">Expense</option>
+                  <option value="Income">Income</option>
+                </select>
               </motion.div>
 
               {/* Submit Button */}

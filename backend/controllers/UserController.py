@@ -61,7 +61,7 @@ async def CreateUser(user: User):
         if existing_user:
             raise HTTPException(status_code=400, detail="Email already registered")
 
-
+            
         current_time = datetime.now(UTC)
         random_otp = random.randrange(1000,10000)
         new_user = user.model_dump(exclude={"id"})
@@ -74,15 +74,16 @@ async def CreateUser(user: User):
         inserted_user = await users_collection.insert_one(new_user)
         
         default_categories = [
-            {"name":"Bills"},
-            {"name":"Salary"},
-            {"name":"Entertainment"}
+            {"name": "Bills", "category_type": "Expense"},
+            {"name": "Salary", "category_type": "Income"},
+            {"name": "Entertainment", "category_type": "Expense"}
         ]
         
-        if not new_user["isAdmin"] :
+        if not new_user["isAdmin"]:
             for category in default_categories:
                 category = Category(
                     name=category["name"],
+                    type=category["category_type"],
                     user_id=str(inserted_user.inserted_id),
                     status=True
                 )
