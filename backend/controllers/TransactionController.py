@@ -220,47 +220,55 @@ async def GetAllTransactionsByUserId(user_id: str):
     
 
 # ------------- Get Analytics of Transactions By User_id ---------------
-async def GetAnalyticsByUserId(user_id:ObjectId):
+async def GetAnalyticsByUserId(user_id: str):
     try:
         if not ObjectId.is_valid(user_id):
             raise HTTPException(status_code=400, detail="Invalid User ID format")
-            
-     
+
         user = await users_collection.find_one({"_id": ObjectId(user_id)})
         if not user:
-            raise HTTPException(status_code=404, detail="User not Found")
-        
-        
-        transactions = await transaction_collection.find({"user_id": ObjectId(user_id)}).to_list(length=None)
-        
-        
-        income = 0
-        expense = 0
-        
-        
-        for transaction in transactions:
-            if transaction["transaction_type"] == "Expense":
-                expense += transaction["amount"]
-            elif transaction["transaction_type"] == "Income":
-                income += transaction["amount"]
-            
-        
-        balance = income - expense
-        savings = income - expense 
-        
+            raise HTTPException(status_code=404, detail="User not found")
+
+        pipeline = [
+            {
+                "$match": {
+                    "user_id": ObjectId(user_id),
+                    "status": True
+                }
+            },
+            {
+                "$group": {
+                    "_id": "$transaction_type",
+                    "total": {"$sum": "$amount"}
+                }
+            }
+        ]
+
+        results = await transaction_collection.aggregate(pipeline).to_list(length=None)
+
         analytics = {
-            "total_income":income,
-            "total_expense": expense,
-            "total_balance":balance,
-            "total_savings":savings
+            "total_income": 0,
+            "total_expense": 0,
+            "total_balance": 0,
+            "total_savings": 0
         }
         
-        
-        
-        return JSONResponse(status_code=200,content=analytics)
-        
+        for result in results:
+            if result["_id"] == "Income":
+                analytics["total_income"] = result["total"]
+            elif result["_id"] == "Expense":
+                analytics["total_expense"] = result["total"]
+
+        analytics["total_balance"] = analytics["total_income"] - analytics["total_expense"]
+        analytics["total_savings"] = analytics["total_balance"]
+
+        return JSONResponse(
+            status_code=200,
+            content=analytics
+        )
+
     except Exception as e:
-        raise HTTPException(status_code=500,detail=f"error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"error: {str(e)}")
     
 # ------------ Get Analytics of All Transactions for Admin -------------
 async def GetAllTransactionsAnalytics():

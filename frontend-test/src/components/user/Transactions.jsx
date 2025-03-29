@@ -6,6 +6,7 @@ import {
   FaArrowDown,
   FaTrash,
   FaWallet,
+  FaDownload,
 } from "react-icons/fa";
 import AddExpense from "./AddExpense";
 import toast, { Toaster } from "react-hot-toast";
@@ -83,6 +84,30 @@ const Transactions = () => {
     });
   };
 
+  const handleDownloadTransactions = async () => {
+    try {
+      const userId = localStorage.getItem("user_id");
+      const response = await axios.get(`/api/export/transactions/${userId}`, {
+        responseType: "blob",
+      });
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      const filename = `transactions_${
+        new Date().toISOString().split("T")[0]
+      }.xlsx`;
+      link.setAttribute("download", filename);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      toast.success("Transactions downloaded successfully");
+    } catch (error) {
+      console.error("Download error:", error);
+      toast.error("Failed to download transactions");
+    }
+  };
+
   useEffect(() => {
     HandleGetAllTransactions();
     HandleGetAllCategoriesByUser();
@@ -114,6 +139,14 @@ const Transactions = () => {
         {/* Actions */}
         <div className="flex items-center space-x-4">
           <button
+            onClick={handleDownloadTransactions}
+            className="px-4 py-2 flex items-center space-x-2 text-gray-600 bg-white rounded-lg border border-gray-200 hover:bg-gray-50 cursor-pointer"
+          >
+            <FaDownload className="text-gray-400" />
+            <span>Export</span>
+          </button>
+
+          <button
             onClick={() => setFilterOpen(!filterOpen)}
             className="px-4 py-2 flex items-center space-x-2 text-gray-600 bg-white rounded-lg border border-gray-200 hover:bg-gray-50"
           >
@@ -123,7 +156,7 @@ const Transactions = () => {
 
           {/* Add Category */}
           <button
-            className="px-4 py-2 flex items-center space-x-2 text-blue-600 bg-white border border-blue-300 hover:bg-blue-50 rounded-lg  cursor-pointer"
+            className="px-4 py-2 flex items-center space-x-2 text-blue-600 bg-white border border-blue-300 hover:bg-blue-50 rounded-lg cursor-pointer"
             onClick={() => setIsCategoryModalOpen(true)}
           >
             <FaPlus className="text-blue-400" />

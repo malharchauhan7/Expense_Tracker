@@ -3,6 +3,7 @@ from models.TransactionsModel import Transaction
 from controllers.TransactionController import GetAnalyticsByUserId,GetAllTransactionsAnalytics
 from controllers.BudgetController import GetBudgetAnalytics
 from controllers.UserController import GetAllUsersAnalytics
+from controllers.ChartController import GetMonthlyTransactionAnalytics,GetCategoryWiseTransactions,GetFinancialSuggestions
 from bson import ObjectId
 
 router = APIRouter()
@@ -21,3 +22,15 @@ async def get_all_transactions_analytics():
 @router.get('/budgets/analytics/{user_id}')
 async def get_budget_analytics(user_id: str):
     return await GetBudgetAnalytics(user_id)
+
+@router.get('/analytics/monthly-transactions/{user_id}')
+async def get_monthly_transaction_analytics(user_id:str):
+    return await GetMonthlyTransactionAnalytics(user_id)
+
+@router.get('/analytics/categorywise-transactions/{user_id}')
+async def get_categorywise_transactions(user_id:str):
+    return await GetCategoryWiseTransactions(user_id)
+
+@router.get('/financial-suggestions/{user_id}')
+async def get_financial_suggestions(user_id:str):
+    return await GetFinancialSuggestions(user_id)

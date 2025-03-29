@@ -11,6 +11,7 @@ import {
   FaMoneyBillWave,
 } from "react-icons/fa";
 import { GrTransaction } from "react-icons/gr";
+import { FaChartSimple } from "react-icons/fa6";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import Navbar from "./Navbar";
 import { Outlet } from "react-router-dom";
@@ -142,6 +143,7 @@ const Sidebar = () => {
   const userMenuItems = [
     { icon: <FaUser />, text: "Profile", path: "profile" },
     { icon: <FaTachometerAlt />, text: "Dashboard", path: "dashboard" },
+    { icon: <FaChartSimple />, text: "Financial Dashboard", path: "charts" },
     { icon: <GrTransaction />, text: "Transactions", path: "transactions" },
     { icon: <FaMoneyBillWave />, text: "Budgets", path: "addbudget" },
     { icon: <FaCog />, text: "Settings", path: "settings" },
