@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException
-from models.UserModel import User
+from models.UserModel import User,ResetPasswordReq
 from typing import Dict
 from pydantic import BaseModel
-from controllers.UserController import LoginUser,CreateUser,SendOTPMail,VerifyOTPCode
+from controllers.UserController import LoginUser,CreateUser,SendOTPMail,VerifyOTPCode,ForgotPassword,ResetPassword
 router = APIRouter()
 
 class LoginData(BaseModel):
@@ -19,6 +19,9 @@ class SignupData(BaseModel):
 class OTPData(BaseModel):
     email:str
     otpcode:int
+    
+class ForgotPasswordRequest(BaseModel):
+    email: str
 
 @router.post("/login", response_model=Dict)
 async def login(login_data: LoginData):
@@ -37,3 +40,11 @@ async def send_otp_mail(user_email:str):
 @router.post('/verify-otp')
 async def verify_otp(OTPData:OTPData):
     return await VerifyOTPCode(OTPData.email,OTPData.otpcode)
+
+@router.post('/forgot-password')
+async def forgot_password(request: ForgotPasswordRequest):
+    return await ForgotPassword(request.email)
+
+@router.post("/reset-password")
+async def reset_password(data:ResetPasswordReq):
+    return await ResetPassword(data)

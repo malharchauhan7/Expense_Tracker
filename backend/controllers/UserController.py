@@ -1,14 +1,17 @@
 from bson import ObjectId
 from config.db import users_collection,category_collection,transaction_collection
-from models.UserModel import User
-from datetime import datetime,UTC
+from models.UserModel import User,ResetPasswordReq
+from datetime import datetime,UTC,timedelta
 from fastapi import HTTPException
 from fastapi.responses import JSONResponse
 from controllers.CategoryController import CreateCategory
 from models.CategoryModel import Category
 from utils.SendMail import send_mail
 import random
+from jose import jwt,JWTError
+import bcrypt
 
+SECRET_KEY = "ExpenseMate$69"
 
 def User_Out(user):
     return {
@@ -37,7 +40,6 @@ async def GetAllUser():
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"error: {str(e)}")
-
 
 
 # Get user by ID
@@ -83,7 +85,7 @@ async def CreateUser(user: User):
             for category in default_categories:
                 category = Category(
                     name=category["name"],
-                    type=category["category_type"],
+                    category_type=category["category_type"],  
                     user_id=str(inserted_user.inserted_id),
                     status=True
                 )
@@ -241,10 +243,58 @@ async def VerifyOTPCode(user_email:str,verifyOTP:int):
     except Exception as e:
         return HTTPException(status_code=404,detail=f"error {str(e)}")
     
+# --------------------- RESET PASSWORD ----------------------
+def generate_token(email: str):
+    expiration = datetime.utcnow() + timedelta(hours=1)
+    payload = {
+        "sub": email,
+        "exp": expiration
+    }
+    token = jwt.encode(payload, SECRET_KEY, algorithm="HS256")
+    return token
 
+async def ForgotPassword(email:str):
+    try:
+        user = await users_collection.find_one({"email":email})
+        if not user:
+            raise HTTPException(status_code=404,detail="User not found!")
+        
+        token = generate_token(email)
+        resetLink = f"http://localhost:5173/resetpassword/{token}"
+        body = f"""
+            HELLO, 
+            This is Reset Password Link Expires in 1 Hour.
+            RESET PASSWORD
+            {resetLink}
+        """
+        subject = "Reset Password"
+        send_mail(email,subject,body)
+        return {"success":"true","message":"Reset link sent successfully"}
+    
+    except Exception as e:
+        raise HTTPException(status_code=404,detail=f"Error {str(e)}")
+
+async def ResetPassword(data:ResetPasswordReq):
+    try:
+        payload = jwt.decode(data.token,SECRET_KEY,algorithms=["HS256"])
+        email = payload.get("sub")
+        if not email:
+            raise HTTPException(status_code=404,detail="Token Invalid")
+        
+        hashed_password = User.hash_password(data.password)
+        updated_at = datetime.now(UTC)
+        
+        await users_collection.update_one({"email": email},{"$set": {"password": hashed_password,"updated_at": updated_at}})
+        
+        return {"success":"true","message":"Passoword reset successfully!"}
+
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=500,detail="jwt is expired")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=500,detail="jwt is invalid")    
+    
+    
 # --------------- Users Management for Admin -----------------
-
-
 
 # Get All Users Details 
 async def GetAllUsersByAdmin():

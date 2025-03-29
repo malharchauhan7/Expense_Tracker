@@ -18,27 +18,40 @@ const Login = () => {
   const [isLoading, setisLoading] = useState(false);
   const navigate = useNavigate();
 
+  const performLogin = async (data) => {
+    try {
+      setisLoading(true);
+      const resp = await axios.post("/api/login", data);
+
+      if (resp.status === 200) {
+        toast.success("Login Success", {
+          duration: 1500,
+          position: "bottom-center",
+        });
+
+        localStorage.setItem("user_id", resp.data._id);
+        localStorage.setItem("name", resp.data.name);
+        localStorage.setItem("isAdmin", resp.data.isAdmin);
+
+        setTimeout(() => {
+          navigate(resp.data.isAdmin ? "/admin" : "/user");
+        }, 1000);
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Login failed", {
+        duration: 1500,
+        position: "bottom-center",
+      });
+      console.error("Login Error:", error);
+    } finally {
+      setisLoading(false);
+    }
+  };
+
   const HandleLogin = async (data) => {
-    console.log(data);
     try {
       if (isVerified) {
-        setisLoading(true);
-        const resp = await axios.post("/api/login", data);
-
-        if (resp.status === 200) {
-          toast.success("Login Success", {
-            duration: 1500,
-            position: "bottom-center",
-          });
-
-          localStorage.setItem("user_id", resp.data._id);
-          localStorage.setItem("name", resp.data.name);
-          localStorage.setItem("isAdmin", resp.data.isAdmin);
-
-          setTimeout(() => {
-            navigate(resp.data.isAdmin ? "/admin" : "/user");
-          }, 1000);
-        }
+        await performLogin(data);
       } else {
         setisLoading(true);
         const resp = await axios.get(`/api/send-otp/${data.email}`);
@@ -139,9 +152,16 @@ const Login = () => {
           <OTPModal
             isOpen={isModelOpen}
             onClose={() => setisModelOpen(false)}
-            onVerify={(success) => {
+            onVerify={async (success) => {
               if (success) {
                 setisVerified(true);
+                setisModelOpen(false);
+
+                const formData = {
+                  email: getValues("email"),
+                  password: getValues("password"),
+                };
+                await performLogin(formData);
               }
             }}
             isLoading={isLoading}

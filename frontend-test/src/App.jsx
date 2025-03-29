@@ -27,6 +27,10 @@ const FinancialDashboard = lazy(() =>
   import("./components/charts/user/FinancialDashboard")
 );
 
+// Reset Password and Forgot Password
+const ForgotPassword = lazy(() => import("./components/common/ForgotPassword"));
+const ResetPassword = lazy(() => import("./components/common/ResetPassword"));
+
 const Loader = () => (
   <div className="flex items-center justify-center min-h-screen">
     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
@@ -41,6 +45,9 @@ const App = () => {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/resetpassword/:token" element={<ResetPassword />} />
+
         <Route element={<PrivateRoutes />}>
           <Route path="/user" element={<Sidebar />}>
             <Route index element={<Navigate to="/user/dashboard" replace />} />

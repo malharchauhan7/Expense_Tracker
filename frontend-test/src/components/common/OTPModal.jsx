@@ -24,10 +24,11 @@ const OTPModal = ({ isOpen, onClose, onVerify, isLoading, email }) => {
       const resp = await axios.post("/api/verify-otp", data);
 
       if (resp.data.success) {
-        toast.success("OTP verified successfully!", {
-          duration: 1500,
-          position: "bottom-center",
-        });
+        // toast.success("OTP verified successfully!", {
+        //   duration: 1500,
+        //   position: "bottom-center",
+        // });
+
         setOtpValue("");
         onVerify(true);
         onClose();

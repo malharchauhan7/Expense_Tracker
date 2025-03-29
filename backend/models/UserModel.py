@@ -26,3 +26,9 @@ class User(BaseModel):
             plain_password.encode('utf-8'),
             hashed_password.encode('utf-8')
         )
+        
+
+class ResetPasswordReq(BaseModel):
+    token:str
+    password:str
+    
