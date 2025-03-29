@@ -33,6 +33,14 @@ const AddBudget = () => {
     fetchBudgets();
   }, []);
 
+  useEffect(() => {
+    if (useMonthSelection) {
+      const currentDate = new Date();
+      const currentMonthYear = format(currentDate, "yyyy-MM");
+      handleMonthChange(currentMonthYear);
+    }
+  }, [useMonthSelection]);
+
   const handleDeleteBudget = async (budgetId) => {
     try {
       await axios.delete(`/api/budgets/${budgetId}`);
@@ -45,13 +53,19 @@ const AddBudget = () => {
   };
 
   const handleMonthChange = (monthYear) => {
-    const [year, month] = monthYear.split("-");
-    const date = new Date(year, parseInt(month) - 1);
-    const start = startOfMonth(date);
-    const end = endOfMonth(date);
+    if (!monthYear) return;
 
-    setValue("start_date", format(start, "yyyy-MM-dd"));
-    setValue("end_date", format(end, "yyyy-MM-dd"));
+    try {
+      const date = parse(monthYear, "yyyy-MM", new Date());
+      const start = startOfMonth(date);
+      const end = endOfMonth(date);
+
+      setValue("start_date", format(start, "yyyy-MM-dd"));
+      setValue("end_date", format(end, "yyyy-MM-dd"));
+    } catch (error) {
+      console.error("Date parsing error:", error);
+      toast.error("Invalid date selection");
+    }
   };
 
   const onSubmit = async (data) => {
@@ -59,22 +73,30 @@ const AddBudget = () => {
       setIsLoading(true);
       const userId = localStorage.getItem("user_id");
 
+      const startDate = new Date(data.start_date);
+      const endDate = new Date(data.end_date);
+
+      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        throw new Error("Invalid date selection");
+      }
+
       const budgetData = {
         ...data,
         user_id: userId,
         amount: parseFloat(data.amount),
-        start_date: new Date(data.start_date).toISOString(),
-        end_date: new Date(data.end_date).toISOString(),
+        start_date: startDate.toISOString(),
+        end_date: endDate.toISOString(),
       };
 
       const response = await axios.post("/api/budgets", budgetData);
-      console.log(response);
+
       if (response.status === 200) {
         toast.success("Budget created successfully!");
         reset();
         fetchBudgets();
       }
     } catch (error) {
+      console.error("Budget creation error:", error);
       toast.error(error.response?.data?.detail || "Failed to create budget");
     } finally {
       setIsLoading(false);
@@ -133,7 +155,7 @@ const AddBudget = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <button
                         onClick={() => handleDeleteBudget(budget._id)}
-                        className="text-red-600 hover:text-red-900"
+                        className="text-red-600 hover:text-red-900 cursor-pointer"
                       >
                         <FaTrash />
                       </button>
@@ -234,7 +256,9 @@ const AddBudget = () => {
                     <FaCalendarAlt className="absolute left-3 top-3.5 text-gray-400" />
                     <input
                       type="month"
-                      onChange={(e) => handleMonthChange(e.target.value)}
+                      {...register("month", {
+                        onChange: (e) => handleMonthChange(e.target.value),
+                      })}
                       className="w-full pl-10 p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                       defaultValue={format(new Date(), "yyyy-MM")}
                     />
