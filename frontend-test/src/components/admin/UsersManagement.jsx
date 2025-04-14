@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { FaSearch, FaEdit, FaTrash, FaUserPlus } from "react-icons/fa";
+import { FaSearch, FaEdit, FaTrash, FaUserPlus, FaEye } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { format } from "date-fns";
+import { toast, Toaster } from "react-hot-toast";
 
 const UsersManagement = () => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("all");
   const [users, setUsers] = useState([]);
@@ -51,8 +54,39 @@ const UsersManagement = () => {
     }
   };
 
+  const handleViewUser = (userId) => {
+    navigate(`/admin/users/${userId}`);
+  };
+
+  const handleToggleStatus = async (userId, currentStatus) => {
+    try {
+      await axios.patch(`/api/admin/users/${userId}/toggle-status`, {
+        status: !currentStatus,
+      });
+      toast.success("User status updated successfully");
+      GetAllUsersDetailsByAdmin();
+    } catch (error) {
+      toast.error("Failed to update user status");
+      console.error(error);
+    }
+  };
+
+  const handleDeleteUser = async (userId) => {
+    if (window.confirm("Are you sure you want to delete this user?")) {
+      try {
+        await axios.delete(`/api/admin/users/${userId}`);
+        toast.success("User deleted successfully");
+        GetAllUsersDetailsByAdmin();
+      } catch (error) {
+        toast.error("Failed to delete user");
+        console.error(error);
+      }
+    }
+  };
+
   return (
     <div className="p-6 bg-gray-50">
+      <Toaster position="bottom-right" />
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-800">Users Management</h2>
         <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
@@ -123,15 +157,16 @@ const UsersManagement = () => {
                   <div className="text-sm text-gray-500">{user.email}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span
+                  <button
+                    onClick={() => handleToggleStatus(user.id, user.status)}
                     className={`px-2 py-1 text-xs rounded-full ${
-                      user.status === true
+                      user.status
                         ? "bg-green-100 text-green-800"
                         : "bg-red-100 text-red-800"
                     }`}
                   >
-                    {user.status === true ? "active" : "inactive"}
-                  </span>
+                    {user.status ? "active" : "inactive"}
+                  </button>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {format(new Date(user.created_at), "MMM dd, yyyy")}
@@ -141,10 +176,25 @@ const UsersManagement = () => {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm">
                   <div className="flex gap-3">
-                    <button className="text-blue-600 hover:text-blue-900">
+                    <button
+                      onClick={() => handleViewUser(user._id)}
+                      className="text-blue-600 hover:text-blue-900 cursor-pointer"
+                      title="View Details"
+                    >
+                      <FaEye />
+                    </button>
+                    <button
+                      onClick={() => handleToggleStatus(user.id, user.status)}
+                      className="text-green-600 hover:text-green-900"
+                      title="Toggle Status"
+                    >
                       <FaEdit />
                     </button>
-                    <button className="text-red-600 hover:text-red-900">
+                    <button
+                      onClick={() => handleDeleteUser(user.id)}
+                      className="text-red-600 hover:text-red-900"
+                      title="Delete User"
+                    >
                       <FaTrash />
                     </button>
                   </div>

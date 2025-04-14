@@ -1,5 +1,5 @@
 from bson import ObjectId
-from config.db import users_collection,category_collection,transaction_collection
+from config.db import users_collection,category_collection,transaction_collection,budget_collection
 from models.UserModel import User,ResetPasswordReq
 from datetime import datetime,UTC,timedelta
 from fastapi import HTTPException
@@ -321,3 +321,86 @@ async def GetAllUsersByAdmin():
         
     except Exception as e:
         return HTTPException(status_code=404,detail=f"error {str(e)}")
+
+
+# GetUserDetailsByAdmin
+async def GetUserDetailsByAdmin(user_id: str):
+    try:
+
+
+        user = await users_collection.find_one({"_id":  ObjectId(user_id)})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+
+        transactions = await transaction_collection.find(
+            {"user_id": ObjectId(user_id)}
+        ).to_list(length=None)
+
+
+        categories = await category_collection.find(
+            {"user_id": ObjectId(user_id)}
+        ).to_list(length=None)
+
+
+        total_income = sum(t["amount"] for t in transactions if t["transaction_type"] == "Income")
+        total_expense = sum(t["amount"] for t in transactions if t["transaction_type"] == "Expense")
+        total_balance = total_income - total_expense
+
+
+        budgets = await budget_collection.find(
+            {"user_id": ObjectId(user_id)}
+        ).to_list(length=None)
+
+
+        income_categories = [cat for cat in categories if cat["category_type"] == "Income"]
+        expense_categories = [cat for cat in categories if cat["category_type"] == "Expense"]
+
+
+        return {
+            "user": {
+                "id": str(user["_id"]),
+                "name": user["name"],
+                "email": user["email"],
+                "created_at": user["created_at"],
+                "status": user["status"]
+            },
+            "stats": {
+                "total_transactions": len(transactions),
+                "total_income": round(total_income,2),
+                "total_expense": round(total_expense,2),
+                "total_balance": round(total_balance,2),
+                "total_budgets": len(budgets),
+                "total_categories": len(categories)
+            },
+            "categories": {
+                "income": [{
+                    "id": str(cat["_id"]),
+                    "name": cat["name"],
+                    "status": cat["status"]
+                } for cat in income_categories],
+                "expense": [{
+                    "id": str(cat["_id"]),
+                    "name": cat["name"],
+                    "status": cat["status"]
+                } for cat in expense_categories]
+            },
+            "transactions": [{
+                "id": str(t["_id"]),
+                "description": t["description"],
+                "amount": t["amount"],
+                "date": t["date"],
+                "transaction_type": t["transaction_type"],
+                "category_id": str(t["category_id"]) if isinstance(t["category_id"], ObjectId) else t["category_id"]
+            } for t in transactions],
+            "budgets": [{
+                "id": str(b["_id"]),
+                "title": b["title"],
+                "amount": b["amount"],
+                "start_date": b["start_date"],
+                "end_date": b["end_date"],
+                "description": b.get("description", "")
+            } for b in budgets]
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

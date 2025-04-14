@@ -2,7 +2,7 @@ from fastapi import APIRouter,HTTPException
 from models.TransactionsModel import Transaction
 from controllers.TransactionController import GetAnalyticsByUserId,GetAllTransactionsAnalytics
 from controllers.BudgetController import GetBudgetAnalytics
-from controllers.UserController import GetAllUsersAnalytics
+from controllers.UserController import GetAllUsersAnalytics,GetUserDetailsByAdmin
 from controllers.ChartController import GetMonthlyTransactionAnalytics,GetCategoryWiseTransactions,GetFinancialSuggestions
 from bson import ObjectId
 
@@ -14,6 +14,10 @@ async def get_analytics_by_user_id(user_id:str):
 @router.get('/analytics/users/')
 async def get_all_users_analytics():
     return await GetAllUsersAnalytics()
+
+@router.get("/admin/user-details/{user_id}")
+async def get_user_details(user_id: str):
+    return await GetUserDetailsByAdmin(user_id)
 
 @router.get("/analytics/transactions/")
 async def get_all_transactions_analytics():
