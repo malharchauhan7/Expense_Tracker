@@ -22,7 +22,7 @@ const UserSettings = lazy(() => import("./components/user/UserSettings"));
 
 const AdminProfile = lazy(() => import("./components/admin/AdminProfile"));
 const AdminSettings = lazy(() => import("./components/admin/AdminSettings"));
-
+const AdminLogin = lazy(() => import("./components/admin/AdminLogin"));
 // Financial Dashboards
 const FinancialDashboard = lazy(() =>
   import("./components/charts/user/FinancialDashboard")
@@ -48,6 +48,7 @@ const App = () => {
         <Route path="/signup" element={<Signup />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/resetpassword/:token" element={<ResetPassword />} />
+        <Route path="/admin/login" element={<AdminLogin />} />
 
         <Route element={<PrivateRoutes />}>
           <Route path="/user" element={<Sidebar />}>
