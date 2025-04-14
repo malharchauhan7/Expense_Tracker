@@ -2,6 +2,9 @@ import React, { useEffect, useState } from "react";
 import { FaWallet, FaArrowUp, FaArrowDown, FaChartBar } from "react-icons/fa";
 import AddExpense from "./AddExpense";
 import BudgetAlert from "./BudgetAlert";
+import MonthlyCharts from "../charts/user/MonthlyCharts";
+import CategoryPieChart from "../charts/user/CategoryPieChart";
+import FinancialSuggestions from "../charts/user/FinancialSuggestions";
 import toast, { Toaster } from "react-hot-toast";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
@@ -19,10 +22,15 @@ const UserDashboard = () => {
     expenses: 0,
     savings: 0,
   });
+  const [suggestions, setSuggestions] = useState(null);
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     HandleGetAllTransactions();
     HandleGetAnalytics();
     HandleGetName();
+    fetchBudgetAnalytics();
+    fetchSuggestions();
   }, [refresh]);
 
   const HandleGetName = () => {
@@ -40,11 +48,18 @@ const UserDashboard = () => {
     }
   };
 
-  useEffect(() => {
-    fetchBudgetAnalytics();
-  }, []);
+  const fetchSuggestions = async () => {
+    try {
+      const userId = localStorage.getItem("user_id");
+      const { data } = await axios.get(`/api/financial-suggestions/${userId}`);
+      setSuggestions(data.suggestions);
+    } catch (error) {
+      console.error("Failed to fetch suggestions:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  // GET ANALYTICS BY USER_ID
   const HandleGetAnalytics = async () => {
     try {
       const user_id = localStorage.getItem("user_id");
@@ -58,8 +73,6 @@ const UserDashboard = () => {
         expenses: data.total_expense,
         savings: data.total_savings,
       });
-
-      // console.log(data);
     } catch (error) {
       console.error(error);
     }
@@ -70,7 +83,6 @@ const UserDashboard = () => {
       const user_id = localStorage.getItem("user_id");
       const resp = await axios.get("/api/transactions/user/" + user_id);
 
-      // console.log(resp.data);
       if (resp.status === 500) {
         toast.error("No Transactions Found");
         return;
@@ -100,12 +112,22 @@ const UserDashboard = () => {
     </div>
   );
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 bg-gray-50">
+      <Toaster position="bottom-right" />
       <AddExpense
         isOpen={isModalOpen}
         onClose={() => {
-          setIsModalOpen(false), setRefresh((prev) => !prev);
+          setIsModalOpen(false);
+          setRefresh((prev) => !prev);
         }}
       />
 
@@ -120,39 +142,22 @@ const UserDashboard = () => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <StatCard
-          title="Total Balance"
-          amount={stats.balance}
-          icon={<FaWallet className="text-blue-600 text-xl" />}
-          bgColor="bg-blue-50"
-        />
-        <StatCard
-          title="Total Income"
-          amount={stats.income}
-          icon={<FaArrowUp className="text-green-600 text-xl" />}
-          bgColor="bg-green-50"
-        />
-        <StatCard
-          title="Total Expenses"
-          amount={stats.expenses}
-          icon={<FaArrowDown className="text-red-600 text-xl" />}
-          bgColor="bg-red-50"
-        />
-        <StatCard
-          title="Total Savings"
-          amount={stats.savings}
-          icon={<FaChartBar className="text-purple-600 text-xl" />}
-          bgColor="bg-purple-50"
-        />
-      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+      {/* Financial Suggestions */}
+      {suggestions && (
+        <div className="mb-8">
+          <FinancialSuggestions suggestions={suggestions} />
+        </div>
+      )}
+
+      {/* Budget Alerts */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
         {budgetAnalytics.length > 0 &&
           budgetAnalytics?.map((budget) => (
             <BudgetAlert key={budget.budget_id} budget={budget} />
           ))}
       </div>
+
       {/* Recent Transactions */}
       <div className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow duration-300">
         <div className="flex items-center justify-between mb-6">
