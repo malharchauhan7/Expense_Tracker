@@ -5,6 +5,7 @@ import FinancialSuggestions from "./FinancialSuggestions";
 import CategoryPieChart from "./CategoryPieChart";
 import { FaDownload } from "react-icons/fa";
 import { toast } from "react-hot-toast";
+import Chatbot from "../../Chatbot";
 
 const FinancialDashboard = () => {
   const [suggestions, setSuggestions] = useState(null);
@@ -117,6 +118,9 @@ const FinancialDashboard = () => {
         </h2>
         <CategoryPieChart />
       </div>
+
+      {/* Add the Chatbot component */}
+      <Chatbot />
     </div>
   );
 };

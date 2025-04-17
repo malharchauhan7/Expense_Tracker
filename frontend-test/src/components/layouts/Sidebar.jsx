@@ -3,12 +3,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   FaTachometerAlt,
   FaCog,
-  FaBars,
   FaSignOutAlt,
   FaUser,
   FaUsers,
   FaWallet,
   FaMoneyBillWave,
+  FaChevronRight,
 } from "react-icons/fa";
 import { GrTransaction } from "react-icons/gr";
 import { FaChartSimple } from "react-icons/fa6";
@@ -21,9 +21,9 @@ const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const location = useLocation();
-  const isAdmin = localStorage.getItem("isAdmin") === "true";
   const currentPath = location.pathname;
   const navigate = useNavigate();
+
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
@@ -34,10 +34,10 @@ const Sidebar = () => {
 
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
   useEffect(() => {
     const isAuthenticated = localStorage.getItem("user_id");
     const isAdmin = localStorage.getItem("isAdmin") === "true";
-    const currentPath = location.pathname;
 
     if (!isAuthenticated) {
       navigate("/login");
@@ -48,11 +48,12 @@ const Sidebar = () => {
       navigate("/user/dashboard");
       toast.error("Unauthorized access");
     }
-  }, [location.pathname, navigate]);
+  }, [location.pathname, navigate, currentPath]);
+
   // Framer Motion
   const sidebarVariants = {
     open: {
-      width: isMobile ? "100%" : "16rem",
+      width: isMobile ? "100%" : "18rem",
       height: isMobile ? "5rem" : "100vh",
       transition: {
         type: "spring",
@@ -62,7 +63,7 @@ const Sidebar = () => {
       },
     },
     closed: {
-      width: isMobile ? "100%" : "4rem",
+      width: isMobile ? "100%" : "5rem",
       height: isMobile ? "5rem" : "100vh",
       transition: {
         type: "spring",
@@ -98,8 +99,10 @@ const Sidebar = () => {
       },
     },
   };
+
   const menuItemVariants = {
     hover: {
+      x: 6,
       transition: {
         type: "spring",
         stiffness: 400,
@@ -130,7 +133,6 @@ const Sidebar = () => {
 
   const adminMenuItems = [
     { icon: <FaUser />, text: "Profile", path: "profile" },
-
     {
       icon: <FaTachometerAlt />,
       text: "Dashboard",
@@ -144,7 +146,11 @@ const Sidebar = () => {
     { icon: <FaUser />, text: "Profile", path: "profile" },
     { icon: <FaTachometerAlt />, text: "Dashboard", path: "dashboard" },
     { icon: <FaChartSimple />, text: "Financial Dashboard", path: "charts" },
-    { icon: <GrTransaction />, text: "Transactions", path: "transactions" },
+    {
+      icon: <GrTransaction className="text-indigo-600" />,
+      text: "Transactions",
+      path: "transactions",
+    },
     { icon: <FaMoneyBillWave />, text: "Budgets", path: "addbudget" },
     { icon: <FaCog />, text: "Settings", path: "settings" },
   ];
@@ -155,7 +161,8 @@ const Sidebar = () => {
     }
     return userMenuItems;
   };
-  const HandleLogout = () => {
+
+  const handleLogout = () => {
     localStorage.removeItem("user_id");
     localStorage.removeItem("name");
     localStorage.removeItem("isAdmin");
@@ -187,72 +194,31 @@ const Sidebar = () => {
         animate={isOpen ? "open" : "closed"}
         className={`fixed ${
           isMobile ? "bottom-0 left-0 right-0" : "top-0 left-0 h-screen"
-        } bg-white z-50 flex ${
+        } bg-gradient-to-b from-white to-gray-50 z-50 flex ${
           isMobile ? "flex-row justify-around items-center" : "flex-col"
-        } shadow-lg`}
+        } shadow-lg border-r border-gray-100`}
       >
         {!isMobile && (
-          <div className="flex items-center p-4">
-            <button
+          <div className="flex justify-end p-4">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               onClick={() => setIsOpen(!isOpen)}
-              className="text-black text-xl hover:bg-blue-700 hover:text-white p-2 rounded-lg mr-2 cursor-pointer"
+              className="text-gray-600 hover:text-blue-600 p-2 rounded-full hover:bg-blue-50 transition-all duration-200"
               aria-label={isOpen ? "Collapse Sidebar" : "Expand Sidebar"}
             >
-              <FaBars />
-            </button>
+              <motion.div
+                animate={{ rotate: isOpen ? 180 : 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <FaChevronRight />
+              </motion.div>
+            </motion.button>
           </div>
         )}
 
-        <nav className={`${isMobile ? "flex-1" : "mt-4 flex-1"}`}>
-          <ul className={`${isMobile ? "flex justify-around" : "space-y-1"}`}>
-            {getMenuItems().map((item, index) => (
-              <motion.li
-                key={index}
-                initial={false}
-                variants={menuItemVariants}
-                whileHover="hover"
-                whileTap="tap"
-                className={isMobile ? "flex-1" : ""}
-              >
-                <Link
-                  to={item.path}
-                  className={`flex ${
-                    isMobile
-                      ? "flex-col items-center justify-center"
-                      : "items-center"
-                  } p-3 rounded-lg mx-2 cursor-pointer
-            ${
-              location.pathname.includes(item.path)
-                ? "bg-blue-700 text-white"
-                : "hover:bg-blue-700 hover:text-white"
-            }`}
-                  onClick={() => isMobile && setIsOpen(false)}
-                >
-                  <motion.div
-                    className="min-w-[24px] flex items-center justify-center"
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                  >
-                    {item.icon}
-                  </motion.div>
-                  {(!isMobile || isOpen) && (
-                    <motion.span
-                      variants={textVariants}
-                      animate={isOpen ? "open" : "closed"}
-                      className={`${
-                        isMobile ? "text-xs mt-1" : "ml-3"
-                      } whitespace-nowrap`}
-                    >
-                      {item.text}
-                    </motion.span>
-                  )}
-                </Link>
-              </motion.li>
-            ))}
-          </ul>
-        </nav>
         {!isMobile && (
-          <div className="flex items-center justify-center py-4 border-b border-gray-100">
+          <div className="flex items-center justify-center py-6 mb-4 border-b border-gray-100">
             <motion.div
               className={`flex items-center space-x-3 ${
                 !isOpen && "justify-center"
@@ -283,32 +249,98 @@ const Sidebar = () => {
             </motion.div>
           </div>
         )}
-        <div className="p-3">
+
+        <nav className={`${isMobile ? "flex-1" : "mt-2 flex-1 px-3"}`}>
+          <ul className={`${isMobile ? "flex justify-around" : "space-y-2"}`}>
+            {getMenuItems().map((item, index) => (
+              <motion.li
+                key={index}
+                initial={false}
+                variants={menuItemVariants}
+                whileHover="hover"
+                whileTap="tap"
+                className={isMobile ? "flex-1" : ""}
+              >
+                <Link
+                  to={item.path}
+                  className={`flex ${
+                    isMobile
+                      ? "flex-col items-center justify-center"
+                      : "items-center"
+                  } p-3 rounded-xl mx-1 cursor-pointer transition-all duration-200
+            ${
+              location.pathname.includes(item.path)
+                ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-200"
+                : "hover:bg-blue-50 text-gray-700 hover:text-blue-600"
+            }`}
+                  onClick={() => isMobile && setIsOpen(false)}
+                >
+                  <motion.div
+                    className={`min-w-[24px] flex items-center justify-center ${
+                      location.pathname.includes(item.path)
+                        ? "text-white"
+                        : "text-blue-600"
+                    }`}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                  >
+                    {item.icon}
+                  </motion.div>
+                  {(!isMobile || isOpen) && (
+                    <motion.span
+                      variants={textVariants}
+                      animate={isOpen ? "open" : "closed"}
+                      className={`${
+                        isMobile ? "text-xs mt-1" : "ml-3 font-medium"
+                      } whitespace-nowrap`}
+                    >
+                      {item.text}
+                    </motion.span>
+                  )}
+
+                  {!isMobile &&
+                    isOpen &&
+                    location.pathname.includes(item.path) && (
+                      <motion.div
+                        className="w-1.5 h-1.5 rounded-full bg-white ml-auto"
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ duration: 0.2 }}
+                      />
+                    )}
+                </Link>
+              </motion.li>
+            ))}
+          </ul>
+        </nav>
+
+        <div className={`p-3 mt-auto ${!isMobile && "mb-6"}`}>
           <motion.button
             whileHover={{
-              backgroundColor: "#EF4444",
+              backgroundColor: "#F87171",
               color: "white",
               transition: { duration: 0.2 },
             }}
             whileTap={{ scale: 0.98 }}
-            className="flex items-center p-3 rounded-lg w-full cursor-pointer"
+            className="flex items-center p-3 rounded-xl w-full cursor-pointer text-gray-700 hover:text-white transition-all duration-200"
             aria-label="Logout"
             onClick={() => {
-              isMobile && setIsOpen(false), HandleLogout();
+              isMobile && setIsOpen(false);
+              handleLogout();
             }}
           >
-            <div className="min-w-[24px] flex items-center justify-center">
+            <div className="min-w-[24px] flex items-center justify-center text-red-500">
               <FaSignOutAlt />
             </div>
-            <span
-              className={`
-                ml-3 whitespace-nowrap
-                
-                ${isOpen ? "opacity-100 w-auto" : "opacity-0 w-0"}
-              `}
-            >
-              Logout
-            </span>
+            {!isMobile && isOpen && (
+              <motion.span
+                variants={textVariants}
+                animate={isOpen ? "open" : "closed"}
+                className="ml-3 whitespace-nowrap font-medium"
+              >
+                Logout
+              </motion.span>
+            )}
           </motion.button>
         </div>
       </motion.div>
@@ -317,7 +349,7 @@ const Sidebar = () => {
       <div
         className={`
              min-h-screen
-    ${isMobile ? "pb-20" : "pt-16 " + (isOpen ? "ml-64" : "ml-16")}
+    ${isMobile ? "pb-20" : "pt-16 " + (isOpen ? "ml-72" : "ml-20")}
     transition-all duration-300 ease-in-out
     bg-gray-50
         `}

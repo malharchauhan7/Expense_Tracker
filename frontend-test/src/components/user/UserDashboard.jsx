@@ -5,6 +5,7 @@ import BudgetAlert from "./BudgetAlert";
 import MonthlyCharts from "../charts/user/MonthlyCharts";
 import CategoryPieChart from "../charts/user/CategoryPieChart";
 import FinancialSuggestions from "../charts/user/FinancialSuggestions";
+import Chatbot from "../Chatbot";
 import toast, { Toaster } from "react-hot-toast";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
@@ -16,7 +17,7 @@ const UserDashboard = () => {
   const [refresh, setRefresh] = useState(false);
   const [Name, setName] = useState("");
   const [budgetAnalytics, setBudgetAnalytics] = useState([]);
-  const [stats, setStats] = useState({
+  const [STATS, SET_STATS] = useState({
     balance: 0,
     income: 0,
     expenses: 0,
@@ -24,6 +25,19 @@ const UserDashboard = () => {
   });
   const [suggestions, setSuggestions] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  // Define a global refresh function that the chatbot can call
+  useEffect(() => {
+    window.refreshTransactions = () => {
+      setRefresh((prev) => !prev);
+      toast.success("Transaction added via chatbot!");
+    };
+
+    return () => {
+      // Clean up the global function when component unmounts
+      delete window.refreshTransactions;
+    };
+  }, []);
 
   useEffect(() => {
     HandleGetAllTransactions();
@@ -67,7 +81,7 @@ const UserDashboard = () => {
         `/api/analytics/transactions/user/${user_id}`
       );
 
-      setStats({
+      SET_STATS({
         balance: data.total_balance,
         income: data.total_income,
         expenses: data.total_expense,
@@ -98,7 +112,7 @@ const UserDashboard = () => {
     }
   };
 
-  const StatCard = ({ title, amount, icon, color, bgColor }) => (
+  const StatCard = ({ title, amount, icon, bgColor }) => (
     <div className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300">
       <div className="flex items-center space-x-4">
         <div className={`${bgColor} p-4 rounded-lg`}>{icon}</div>
@@ -244,6 +258,9 @@ const UserDashboard = () => {
           )}
         </div>
       </div>
+
+      {/* Chatbot */}
+      <Chatbot />
     </div>
   );
 };

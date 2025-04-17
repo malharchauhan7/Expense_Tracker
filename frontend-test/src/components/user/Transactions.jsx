@@ -13,6 +13,7 @@ import toast, { Toaster } from "react-hot-toast";
 import axios from "axios";
 import AddCategory from "./AddCategory";
 import { format } from "date-fns";
+import Chatbot from "../Chatbot";
 
 const Transactions = () => {
   const [filterOpen, setFilterOpen] = useState(false);
@@ -111,6 +112,16 @@ const Transactions = () => {
   useEffect(() => {
     HandleGetAllTransactions();
     HandleGetAllCategoriesByUser();
+
+    // Add global refresh function for the chatbot to call
+    window.refreshTransactions = () => {
+      HandleGetAllTransactions();
+    };
+
+    // Cleanup on unmount
+    return () => {
+      delete window.refreshTransactions;
+    };
   }, [refresh]);
 
   return (
@@ -311,6 +322,9 @@ const Transactions = () => {
           )}
         </div>
       </div>
+
+      {/* Add the Chatbot component */}
+      <Chatbot />
     </div>
   );
 };

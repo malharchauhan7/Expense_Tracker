@@ -5,6 +5,7 @@ import toast, { Toaster } from "react-hot-toast";
 import { FaMoneyBillWave, FaCalendarAlt, FaTrash } from "react-icons/fa";
 import { format } from "date-fns";
 import { startOfMonth, endOfMonth, parse } from "date-fns";
+import Chatbot from "../Chatbot";
 
 const AddBudget = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -31,6 +32,16 @@ const AddBudget = () => {
 
   useEffect(() => {
     fetchBudgets();
+
+    // Add global refresh function for the chatbot to call
+    window.refreshBudgets = () => {
+      fetchBudgets();
+    };
+
+    // Cleanup on unmount
+    return () => {
+      delete window.refreshBudgets;
+    };
   }, []);
 
   useEffect(() => {
@@ -336,6 +347,7 @@ const AddBudget = () => {
           </form>
         </div>
       </div>
+      <Chatbot />
     </div>
   );
 };
