@@ -1,16 +1,18 @@
 from fastapi import APIRouter, HTTPException
+import json
 from pydantic import BaseModel
 from typing import Optional, List, Tuple
 from datetime import datetime, timedelta
 import re
 import dateparser
 from controllers.CategoryController import CreateCategory, GetALLCategoriesByUserId
-from controllers.TransactionController import CreateTransaction
+from controllers.TransactionController import CreateTransaction,GetAnalyticsByUserId
 from controllers.BudgetController import CreateBudget
 from models.CategoryModel import Category
 from models.TransactionsModel import Transaction
 from models.BudgetModel import Budget
-from bson import ObjectId
+from bson import ObjectId, Decimal128
+from decimal import Decimal
 import logging
 from dateutil.relativedelta import relativedelta
 import calendar
@@ -280,6 +282,20 @@ def is_budget_request(message: str) -> bool:
     message_lower = message.lower()
     return any(keyword in message_lower for keyword in budget_keywords)
 
+async def get_user_balance(user_id: str) -> float:
+    """Calculate user's total balance from all transactions."""
+    try:
+        
+        analytics_response = await GetAnalyticsByUserId(user_id)
+        analytics = json.loads(analytics_response.body.decode('utf-8'))
+        
+        total_balance = analytics['total_balance']
+        
+        return float(total_balance)
+    except Exception as e:
+        logger.error(f"Error calculating user balance: {str(e)}")
+        return 0.0
+
 @router.post("/process")
 async def process_message(chat_message: ChatMessage):
     try:
@@ -434,6 +450,9 @@ async def process_message(chat_message: ChatMessage):
             if category_creation_status == "new":
                 success_message += f" Created new '{category_name}' category."
             
+            current_balance = await get_user_balance(chat_message.userId)
+            success_message += f"\nYour current balance is: ${current_balance:.2f}"
+
             return {
                 "message": success_message,
                 "transactionCreated": True,
@@ -441,7 +460,8 @@ async def process_message(chat_message: ChatMessage):
                     "amount": amount,
                     "category": category_name,
                     "type": transaction_type,
-                    "date": transaction_date.isoformat()
+                    "date": transaction_date.isoformat(),
+                    "balance": current_balance
                 }
             }
         except Exception as inner_error:
@@ -459,4 +479,4 @@ async def process_message(chat_message: ChatMessage):
             "message": f"Sorry, I encountered an error: {str(e)}",
             "transactionCreated": False,
             "error": str(e)
-        } 
+        }

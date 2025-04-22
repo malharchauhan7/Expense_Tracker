@@ -410,6 +410,20 @@ const Chatbot = () => {
                                     {formatMessageTime(message.details.date)}
                                   </span>
                                 </div>
+                                <div className="flex justify-between items-center pt-1 border-t border-gray-100 mt-1">
+                                  <span className="text-gray-600">
+                                    Balance:
+                                  </span>
+                                  <span
+                                    className={`font-medium ${
+                                      message.details.balance >= 0
+                                        ? "text-green-600"
+                                        : "text-red-600"
+                                    }`}
+                                  >
+                                    ${message.details.balance.toFixed(2)}
+                                  </span>
+                                </div>
                               </div>
                             </motion.div>
                           )}
